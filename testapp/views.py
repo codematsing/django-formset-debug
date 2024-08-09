@@ -33,7 +33,7 @@ from testapp.forms.address import AddressForm
 from testapp.forms.advertisement import AdvertisementForm
 from testapp.forms.article import ArticleForm
 from testapp.forms.blog import BlogModelForm
-from testapp.forms.company import CompanyCollection, CompaniesCollection
+from testapp.forms.company import CompanyCollection, CompaniesCollection, CompanyDepartmentFormset
 from testapp.forms.complete import CompleteForm
 from testapp.forms.contact import (
     SimpleContactCollection, ContactCollection, ContactCollectionList, IntermediateContactCollectionList,
@@ -317,6 +317,23 @@ class GalleryCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionVi
         'force_submission': False,
     }
 
+class CompanyDepartmentUpdateView(DemoFormCollectionViewMixin, SessionFormCollectionViewMixin, EditCollectionView):
+    model = Company
+    collection_class = CompanyDepartmentFormset
+    template_name = 'testapp/form-collection.html'
+
+    def get_initial(self):
+        return []
+
+    def get_form_kwargs(self):
+        form_kwargs = super().get_form_kwargs()
+        # replicating UpdateView adding instance
+        form_kwargs['instance'] = Company.objects.first()
+        return form_kwargs
+
+    def form_collection_valid(self, form_collection):
+        form_collection.save()
+        return super().form_collection_valid(form_collection)
 
 class IssueCollectionView(DemoFormCollectionViewMixin, SessionFormCollectionViewMixin, EditCollectionView):
     model = IssueModel
@@ -657,4 +674,6 @@ urlpatterns = [
     ), name='button-actions'),
     path('gallerycollection', GalleryCollectionView.as_view(
     ), name='gallerycollection'),
+    path('companydepartmentformset', CompanyDepartmentUpdateView.as_view(
+    ), name='companydepartmentformset'),
 ]
