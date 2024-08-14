@@ -108,7 +108,7 @@ class CustomHyperlinkDialogForm(dialogs.RichtextDialogForm):
     )
 
 
-font_classes = {
+font_family_classes = {
     'open-sans-regular': 'Open Sans',
     'dancing-script-regular': 'Dancing Script',
     'lato-regular': 'Lato',
@@ -118,6 +118,14 @@ font_classes = {
     'pacifio-regular': 'Pacifico',
     'incosolata-regular': 'Incosolata',
     'playfair-display-regular': 'Playfair Display',
+}
+
+
+font_size_classes = {
+    'font-size-small': "Small",
+    'font-size-smaller': "Smaller",
+    'font-size-large': "Large",
+    'font-size-larger': "Larger",
 }
 
 
@@ -136,7 +144,8 @@ class AdvertisementForm(forms.Form):
             controls.Group([
                 controls.TextColor(['text-red', 'text-green', 'text-blue']),
                 #controls.TextColor(['rgb(212, 0, 0)', 'rgb(0, 212, 0)', 'rgb(0, 0, 212)']),
-                controls.FontFamily(font_classes),
+                controls.FontFamily(font_family_classes),
+                controls.FontSize(font_size_classes),
                 controls.TextIndent(),
                 controls.TextIndent('outdent'),
                 controls.TextMargin('increase'),

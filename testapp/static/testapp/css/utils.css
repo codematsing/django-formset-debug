@@ -785,3 +785,17 @@
   font-weight: 400;
   font-style: normal;
 }
+
+
+.font-size-small {
+	font-size: small;
+}
+.font-size-smaller {
+	font-size: smaller;
+}
+.font-size-large {
+	font-size: large;
+}
+.font-size-larger {
+	font-size: larger;
+}

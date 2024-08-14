@@ -30,7 +30,7 @@ import Underline from '@tiptap/extension-underline';
 import {TextIndent, TextIndentOptions } from '../tiptap-extensions/indent';
 import {TextMargin, TextMarginOptions } from '../tiptap-extensions/margin';
 import {TextColor} from '../tiptap-extensions/color';
-import {FontFamily} from '../tiptap-extensions/font';
+import {ClassBasedMark} from '../tiptap-extensions/classbased';
 import {StyleHelpers} from './helpers';
 import {FormDialog} from './FormDialog';
 import {parse} from '../build/function-code';
@@ -267,7 +267,7 @@ namespace controls {
 							rect?.classList.forEach(value => rect.classList.remove(value));
 							rect?.classList.add(color);
 						}
-						isActive = true
+						isActive = true;
 					}
 				}
 			});
@@ -282,11 +282,8 @@ namespace controls {
 		}
 
 		extendExtensions(extensions: Array<Extension|Mark|Node>) {
-			let unmergedOptions = true;
-			extensions.forEach(e => {
-				if (e.name === 'textColor')
-					throw new Error("RichtextArea allows only one control element with 'textColor'.");
-			});
+			if (extensions.find(e => e.name === 'textColor'))
+				throw new Error("RichtextArea allows only one control element with 'textColor'.");
 			extensions.push(TextColor.configure({allowedClasses: this.allowedClasses}));
 		}
 
@@ -317,19 +314,25 @@ namespace controls {
 		}
 	}
 
-	export class FontFamilyAction extends DropdownAction {
+	export class ClassBasedMarkAction extends DropdownAction {
 		private allowedClasses: Array<string> = [];
+		private readonly tiptapExtension: Mark;
 
 		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
-			super(wrapperElement, name, button, '[richtext-click^="font:"]');
+			const parts = name.split(':');
+			if (parts.length !== 2 || !parts[1])
+				throw new Error(`Element ${button} requires attribute 'richtext-click="classBasedMark:..."'.`);
+			name = parts[1];
+			super(wrapperElement, name, button, `[richtext-click^="${name}:"]`);
 			if (!(button.nextElementSibling instanceof HTMLUListElement) || button.nextElementSibling.getAttribute('role') !== 'menu')
-				throw new Error('Font Family requires a sibling element <ul role="menu">…</ul>');
-			this.collectFonts();
+				throw new Error('Class Based Dropdown requires a sibling element <ul role="menu">…</ul>');
+			this.collectClasses();
+			this.tiptapExtension = ClassBasedMark.extend({name});
 		}
 
-		private collectFonts() {
+		protected collectClasses() {
 			this.dropdownItems.forEach(element => {
-				const cssClass = this.extractFont(element);
+				const cssClass = this.extractClass(element);
 				if (!cssClass)
 					return;
 				if (/^-?[_a-zA-Z]+[_a-zA-Z0-9-]*$/.test(cssClass)) {
@@ -340,7 +343,7 @@ namespace controls {
 			});
 		}
 
-		private extractFont(element: Element) {
+		protected extractClass(element: Element) {
 			const parts = element.getAttribute('richtext-click')?.split(':') ?? [];
 			if (parts.length !== 2)
 				throw new Error(`Element ${element} requires attribute 'richtext-click'.`);
@@ -354,10 +357,10 @@ namespace controls {
 		activate(editor: Editor) {
 			let isActive = false;
 			this.dropdownItems.forEach(element => {
-				const fontFamily = this.extractFont(element);
-				if (fontFamily) {
-					if (editor.isActive({fontFamily})) {
-						isActive = true
+				const cssClass = this.extractClass(element);
+				if (cssClass) {
+					if (editor.isActive({[this.name]: cssClass})) {
+						isActive = true;
 					}
 				}
 			});
@@ -365,19 +368,16 @@ namespace controls {
 		}
 
 		extendExtensions(extensions: Array<Extension|Mark|Node>) {
-			let unmergedOptions = true;
-			extensions.forEach(e => {
-				if (e.name === 'fontFamily')
-					throw new Error("RichtextArea allows only one control element with 'fontFamily'.");
-			});
-			extensions.push(FontFamily.configure({allowedClasses: this.allowedClasses}));
+			if (extensions.find(e => e.name === this.name))
+				throw new Error(`RichtextArea allows only one control element with '${this.name}'.`);
+			extensions.push(this.tiptapExtension.configure({allowedClasses: this.allowedClasses}));
 		}
 
 		protected toggleMenu(editor: Editor, force?: boolean) {
 			super.toggleMenu(editor, force);
 			this.dropdownItems.forEach(element => {
-				const cssClass = this.extractFont(element);
-				element.parentElement?.classList.toggle('active', editor.isActive({fontFamily: cssClass}));
+				const cssClass = this.extractClass(element);
+				element.parentElement?.classList.toggle('active', editor.isActive({[this.name]: cssClass}));
 			});
 		}
 
@@ -385,11 +385,11 @@ namespace controls {
 			let element = event.target instanceof Element ? event.target : null;
 			while (element) {
 				if (element.role === 'menuitem') {
-					const cssClass = this.extractFont(element);
+					const cssClass = this.extractClass(element);
 					if (cssClass) {
-						editor.chain().focus().setFont(cssClass).run();
+						editor.chain().focus().setClass(this.name, cssClass).run();
 					} else {
-						editor.chain().focus().unsetFont().run();
+						editor.chain().focus().unsetClass(this.name).run();
 					}
 					this.activate(editor);
 					this.toggleMenu(editor, false);
@@ -426,7 +426,7 @@ namespace controls {
 		}
 
 		extendExtensions(extensions: Array<Extension|Mark|Node>) {
-			if (!extensions.filter(e => e.name === 'textIndent').length) {
+			if (!extensions.find(e => e.name === 'textIndent')) {
 				extensions.push(TextIndent.configure(this.options));
 			}
 		}
@@ -461,7 +461,7 @@ namespace controls {
 		}
 
 		extendExtensions(extensions: Array<Extension|Mark|Node>) {
-			if (!extensions.filter(e => e.name === 'textMargin').length) {
+			if (!extensions.find(e => e.name === 'textMargin')) {
 				extensions.push(TextMargin.configure(this.options));
 			}
 		}

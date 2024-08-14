@@ -2,21 +2,22 @@
 // as they interfere making this extension unusable
 import {Mark} from '@tiptap/core';
 
-export interface FontFamilyOptions {
-	allowedClasses: string[],
+export interface ClassBasedOptions {
+	allowedClasses: string[];
 }
 
 declare module '@tiptap/core' {
 	interface Commands<ReturnType> {
-		fontFamily: {
-			setFont: (cssClass: string) => ReturnType,
-			unsetFont: () => ReturnType,
+		classBased: {
+			setClass: (name: string, cssClass: string) => ReturnType,
+			unsetClass: (name: string) => ReturnType,
 		}
 	}
 }
 
-export const FontFamily = Mark.create<FontFamilyOptions>({
-	name: 'fontFamily',
+
+export const ClassBasedMark = Mark.create<ClassBasedOptions>({
+	name: 'classBasedMark',
 
 	addOptions() {
 		return {
@@ -26,16 +27,16 @@ export const FontFamily = Mark.create<FontFamilyOptions>({
 
 	addAttributes() {
 		return {
-			fontFamily: {
+			[this.name]: {
 				default: null,
-				parseHTML: element => {
+				parseHTML: (element: HTMLElement) => {
 					for (let cssClass of this.options.allowedClasses) {
 						if (element.classList.contains(cssClass))
 							return cssClass;
 					}
 				},
-				renderHTML: attributes => {
-					return {class: attributes.fontFamily};
+				renderHTML: (attributes: Record<string, any>) => {
+					return {class: attributes[this.name]};
 				},
 			},
 		};
@@ -44,7 +45,7 @@ export const FontFamily = Mark.create<FontFamilyOptions>({
 	parseHTML() {
 		return [{
 			tag: 'span',
-			getAttrs: element => {
+			getAttrs: (element: HTMLElement) => {
 				if (element instanceof HTMLElement) {
 					if (this.options.allowedClasses.some(cssClass => element.classList.contains(cssClass)))
 						return {};
@@ -60,11 +61,11 @@ export const FontFamily = Mark.create<FontFamilyOptions>({
 
 	addCommands() {
 		return {
-			setFont: (cssClass: string) => ({commands}) => {
-				return commands.setMark(this.name, {fontFamily: cssClass});
+			setClass: (name: string, cssClass: string) => ({commands}) => {
+				return commands.setMark(name, {[name]: cssClass});
 			},
-			unsetFont: () => ({commands}) => {
-				return commands.unsetMark(this.name);
+			unsetClass: (name: string) => ({commands}) => {
+				return commands.unsetMark(name);
 			},
 		}
 	},
