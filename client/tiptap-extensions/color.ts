@@ -2,7 +2,7 @@
 // as they interfere making this extension unusable
 import {Mark} from '@tiptap/core';
 
-export interface TextColorOptions {
+interface TextColorOptions {
 	allowedClasses: string[],
 }
 
