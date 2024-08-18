@@ -30,7 +30,7 @@ import Underline from '@tiptap/extension-underline';
 import {TextIndent, TextIndentOptions } from '../tiptap-extensions/indent';
 import {TextMargin, TextMarginOptions } from '../tiptap-extensions/margin';
 import {TextColor} from '../tiptap-extensions/color';
-import {ClassBasedMark} from '../tiptap-extensions/classbased';
+import {ClassBasedMark, ClassBasedNode} from '../tiptap-extensions/classbased';
 import {StyleHelpers} from './helpers';
 import {FormDialog} from './FormDialog';
 import {parse} from '../build/function-code';
@@ -314,20 +314,18 @@ namespace controls {
 		}
 	}
 
-	export class ClassBasedMarkAction extends DropdownAction {
-		private allowedClasses: Array<string> = [];
-		private readonly tiptapExtension: Mark;
+	abstract class ClassBasedDropdownAction extends DropdownAction {
+		protected allowedClasses: Array<string> = [];
 
 		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
 			const parts = name.split(':');
 			if (parts.length !== 2 || !parts[1])
-				throw new Error(`Element ${button} requires attribute 'richtext-click="classBasedMark:..."'.`);
+				throw new Error(`Element ${button} requires attribute 'richtext-click="classBased<Mark|Node>:..."'.`);
 			name = parts[1];
 			super(wrapperElement, name, button, `[richtext-click^="${name}:"]`);
 			if (!(button.nextElementSibling instanceof HTMLUListElement) || button.nextElementSibling.getAttribute('role') !== 'menu')
 				throw new Error('Class Based Dropdown requires a sibling element <ul role="menu">…</ul>');
 			this.collectClasses();
-			this.tiptapExtension = ClassBasedMark.extend({name});
 		}
 
 		protected collectClasses() {
@@ -358,13 +356,32 @@ namespace controls {
 			let isActive = false;
 			this.dropdownItems.forEach(element => {
 				const cssClass = this.extractClass(element);
-				if (cssClass) {
-					if (editor.isActive({[this.name]: cssClass})) {
-						isActive = true;
-					}
+				if (cssClass && this.allowedClasses.includes(cssClass) && this.isActive(editor, cssClass)) {
+					isActive = true;
 				}
 			});
 			this.button.classList.toggle('active', isActive);
+		}
+
+		protected isActive(editor: Editor, cssClass: string) {
+			return false;
+		}
+
+		protected toggleMenu(editor: Editor, force?: boolean) {
+			super.toggleMenu(editor, force);
+			this.dropdownItems.forEach(element => {
+				const cssClass = this.extractClass(element);
+				element.parentElement?.classList.toggle('active', this.isActive(editor, cssClass ?? ''));
+			});
+		}
+	}
+
+	export class ClassBasedMarkAction extends ClassBasedDropdownAction {
+		private readonly tiptapExtension: Mark;
+
+		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
+			super(wrapperElement, name, button);
+			this.tiptapExtension = ClassBasedMark.extend({name: this.name});
 		}
 
 		extendExtensions(extensions: Array<Extension|Mark|Node>) {
@@ -373,12 +390,8 @@ namespace controls {
 			extensions.push(this.tiptapExtension.configure({allowedClasses: this.allowedClasses}));
 		}
 
-		protected toggleMenu(editor: Editor, force?: boolean) {
-			super.toggleMenu(editor, force);
-			this.dropdownItems.forEach(element => {
-				const cssClass = this.extractClass(element);
-				element.parentElement?.classList.toggle('active', editor.isActive({[this.name]: cssClass}));
-			});
+		protected isActive(editor: Editor, cssClass: string): boolean {
+			return editor.isActive({[this.name]: cssClass});
 		}
 
 		protected toggleItem(event: MouseEvent, editor: Editor) {
@@ -387,9 +400,46 @@ namespace controls {
 				if (element.role === 'menuitem') {
 					const cssClass = this.extractClass(element);
 					if (cssClass) {
-						editor.chain().focus().setClass(this.name, cssClass).run();
+						editor.chain().focus().setMarkClass(this.name, cssClass).run();
 					} else {
-						editor.chain().focus().unsetClass(this.name).run();
+						editor.chain().focus().unsetMarkClass(this.name).run();
+					}
+					this.activate(editor);
+					this.toggleMenu(editor, false);
+					break;
+				}
+				element = element.parentElement;
+			}
+		}
+	}
+
+	export class ClassBasedNodeAction extends ClassBasedDropdownAction {
+		private readonly tiptapExtension: Extension;
+
+		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
+			super(wrapperElement, name, button);
+			this.tiptapExtension = ClassBasedNode.extend({name: this.name});
+		}
+
+		extendExtensions(extensions: Array<Extension|Mark|Node>) {
+			if (extensions.find(e => e.name === this.name))
+				throw new Error(`RichtextArea allows only one control element with '${this.name}'.`);
+			extensions.push(this.tiptapExtension.configure());
+		}
+
+		protected isActive(editor: Editor, cssClass: string): boolean {
+			return editor.isActive({cssClass});
+		}
+
+		protected toggleItem(event: MouseEvent, editor: Editor) {
+			let element = event.target instanceof Element ? event.target : null;
+			while (element) {
+				if (element.role === 'menuitem') {
+					const cssClass = this.extractClass(element);
+					if (cssClass) {
+						editor.chain().focus().setNodeClass(this.name, cssClass).run();
+					} else {
+						editor.chain().focus().unsetNodeClass(this.name).run();
 					}
 					this.activate(editor);
 					this.toggleMenu(editor, false);

@@ -244,6 +244,7 @@ class Redo(ControlElement):
 
 class ClassBaseControlElement(ControlElement):
     template_name = 'formset/richtext/class_based.html'
+    extension_type = 'mark'
 
     def __init__(self, css_classes):
         if not isinstance(css_classes, dict) or len(css_classes) == 0:
@@ -257,7 +258,10 @@ class ClassBaseControlElement(ControlElement):
 
     def get_context(self):
         context = super().get_context()
-        context['css_classes'] = self.css_classes
+        context.update(
+            css_classes=self.css_classes,
+            dropdown_action=f'classBased{self.extension_type.title()}:{self.extension}',
+        )
         return context
 
 
@@ -271,6 +275,13 @@ class FontSize(ClassBaseControlElement):
     extension = 'fontSize'
     label = _("Font Size")
     icon = 'formset/icons/font-size.svg'
+
+
+class LineHeight(ClassBaseControlElement):
+    extension = 'lineHeight'
+    label = _("Line Height")
+    icon = 'formset/icons/line-height.svg'
+    extension_type = 'node'
 
 
 class DialogControl(ControlElement):

@@ -129,6 +129,13 @@ font_size_classes = {
 }
 
 
+line_height_classes = {
+    'line-height-small': "Small",
+    'line-height-medium': "Medium",
+    'line-height-double': "Double",
+}
+
+
 class AdvertisementForm(forms.Form):
     ad_text = fields.CharField(
         widget=RichTextarea(control_elements=[
@@ -146,6 +153,7 @@ class AdvertisementForm(forms.Form):
                 #controls.TextColor(['rgb(212, 0, 0)', 'rgb(0, 212, 0)', 'rgb(0, 0, 212)']),
                 controls.FontFamily(font_family_classes),
                 controls.FontSize(font_size_classes),
+                controls.LineHeight(line_height_classes),
                 controls.TextIndent(),
                 controls.TextIndent('outdent'),
                 controls.TextMargin('increase'),

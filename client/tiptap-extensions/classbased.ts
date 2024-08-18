@@ -1,22 +1,20 @@
-// Do not mix this Tiptap extension with `@tiptap/extension-text-style`
-// as they interfere making this extension unusable
-import {Mark} from '@tiptap/core';
-
-export interface ClassBasedOptions {
-	allowedClasses: string[];
-}
+import {Extension, Mark} from '@tiptap/core';
 
 declare module '@tiptap/core' {
 	interface Commands<ReturnType> {
-		classBased: {
-			setClass: (name: string, cssClass: string) => ReturnType,
-			unsetClass: (name: string) => ReturnType,
-		}
+		classBasedMark: {
+			setMarkClass: (name: string, cssClass: string) => ReturnType,
+			unsetMarkClass: (name: string) => ReturnType,
+		},
+		classBasedNode: {
+			setNodeClass: (name: string, cssClass: string) => ReturnType,
+			unsetNodeClass: (name: string) => ReturnType,
+		},
 	}
 }
 
 
-export const ClassBasedMark = Mark.create<ClassBasedOptions>({
+export const ClassBasedMark = Mark.create({
 	name: 'classBasedMark',
 
 	addOptions() {
@@ -47,7 +45,7 @@ export const ClassBasedMark = Mark.create<ClassBasedOptions>({
 			tag: 'span',
 			getAttrs: (element: HTMLElement) => {
 				if (element instanceof HTMLElement) {
-					if (this.options.allowedClasses.some(cssClass => element.classList.contains(cssClass)))
+					if (this.options.allowedClasses.some((cssClass: string) => element.classList.contains(cssClass)))
 						return {};
 				}
 				return false;
@@ -61,12 +59,49 @@ export const ClassBasedMark = Mark.create<ClassBasedOptions>({
 
 	addCommands() {
 		return {
-			setClass: (name: string, cssClass: string) => ({commands}) => {
+			setMarkClass: (name: string, cssClass: string) => ({commands}) => {
 				return commands.setMark(name, {[name]: cssClass});
 			},
-			unsetClass: (name: string) => ({commands}) => {
+			unsetMarkClass: (name: string) => ({commands}) => {
 				return commands.unsetMark(name);
 			},
 		}
 	},
+});
+
+
+export const ClassBasedNode = Extension.create({
+	name: 'classBasedNode',
+
+	addGlobalAttributes() {
+		console.log(this);
+		return [{
+			types: ['paragraph'],
+			attributes: {
+				cssClass: {
+					default: null,
+					parseHTML: element => element.getAttribute('class') ?? '',
+					renderHTML: attributes => {
+						if (!attributes.cssClass)
+							return {};
+						return {
+							'class': attributes.cssClass,
+						}
+					},
+				},
+			},
+		}];
+	},
+
+	addCommands() {
+		return {
+			setNodeClass: (name: string, cssClass: string) => ({commands}) => {
+				return commands.updateAttributes('paragraph', {cssClass});
+			},
+			unsetNodeClass: (name: string) => ({commands}) => {
+				return commands.resetAttributes('paragraph', ['cssClass']);
+			},
+		};
+	},
+
 });

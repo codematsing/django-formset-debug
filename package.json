@@ -114,6 +114,7 @@
     "node": false,
     "esversion": 8,
     "undef": true,
-    "unused": true
+    "unused": true,
+    "supernew": false
   }
 }
