@@ -3,7 +3,7 @@ import isEmpty from 'lodash.isempty';
 import isEqual from 'lodash.isequal';
 import isString from 'lodash.isstring';
 import getDataValue from 'lodash.get';
-import {computePosition} from '@floating-ui/dom';
+import {arrow, computePosition} from '@floating-ui/dom';
 import {Editor, Extension, Mark, Node, markPasteRule, mergeAttributes, getAttributes, JSONContent} from '@tiptap/core';
 import {Plugin, PluginKey} from '@tiptap/pm/state';
 import Blockquote from '@tiptap/extension-blockquote';
@@ -37,10 +37,34 @@ import {parse} from '../build/function-code';
 import styles from './RichtextArea.scss';
 
 
+function appearTooltip(event: MouseEvent) {
+	if (!(event.target instanceof HTMLButtonElement && event.target.ariaLabel))
+		return;
+	const button = event.target;
+	const tooltipElement = document.createElement('div');
+	tooltipElement.classList.add('tooltip');
+	tooltipElement.innerText = button.ariaLabel ?? '';
+	const arrowElement = document.createElement('div');
+	arrowElement.classList.add('arrow');
+	tooltipElement.appendChild(arrowElement);
+	button.insertAdjacentElement('beforebegin', tooltipElement);
+	computePosition(button, tooltipElement, {placement: 'top', strategy: 'fixed', middleware: [arrow({element: arrowElement})]}).then(
+		({x, y}) => Object.assign(tooltipElement!.style, {
+			left: `${x}px`,
+			top: `${y}px`,
+			opacity: '0.8',
+			transition: 'opacity 0.5s 0.25s',
+		})
+	);
+	button.addEventListener('mouseleave', () => tooltipElement.remove(), {once: true});
+}
+
+
 abstract class Action {
 	public readonly name: string;
 	public readonly button: HTMLButtonElement;
 	protected readonly extensions: Array<Extension|Mark|Node> = [];
+	private tooltipElement: HTMLElement|null = null;
 
 	constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
 		this.name = name;
@@ -49,9 +73,25 @@ abstract class Action {
 
 	public installEventHandler(editor: Editor) {
 		this.button.addEventListener('click', () => this.clicked(editor));
+		this.button.addEventListener('mouseenter', appearTooltip);
 	}
 
 	protected abstract clicked(editor: Editor): void;
+
+	protected mouseEnter() {
+		if (this.button.ariaLabel) {
+			this.tooltipElement = document.createElement('div');
+			this.tooltipElement.classList.add('tooltip');
+			this.tooltipElement.innerText = this.button.ariaLabel;
+			const arrowElement = document.createElement('div');
+			arrowElement.classList.add('arrow');
+			this.tooltipElement.appendChild(arrowElement);
+			this.button.insertAdjacentElement('beforebegin', this.tooltipElement);
+			computePosition(this.button, this.tooltipElement, {placement: 'top', strategy: 'fixed', middleware: [arrow({element: arrowElement})]}).then(
+				({x, y}) => Object.assign(this.tooltipElement!.style, {left: `${x}px`, top: `${y}px`})
+			);
+		}
+	}
 
 	activate(editor: Editor) {
 		this.button.classList.toggle('active', editor.isActive(this.name));
@@ -102,6 +142,7 @@ abstract class DropdownAction extends Action {
 		} else {
 			this.button.addEventListener('click', event => this.toggleItem(event, editor));
 		}
+		this.button.addEventListener('mouseenter', appearTooltip);
 	}
 
 	protected toggleMenu(editor: Editor, force?: boolean) {
@@ -109,7 +150,7 @@ abstract class DropdownAction extends Action {
 			const expanded = (force !== false && this.button.ariaExpanded === 'false');
 			this.button.ariaExpanded = expanded ? 'true' : 'false';
 			if (expanded) {
-				computePosition(this.button, this.dropdownMenu).then(
+				computePosition(this.button, this.dropdownMenu, {strategy: 'fixed'}).then(
 					({x, y}) => Object.assign(this.dropdownMenu!.style, {left: `${x}px`, top: `${y}px`})
 				);
 			}
@@ -789,6 +830,7 @@ class RichtextFormDialog extends FormDialog {
 				}
 			}
 		});
+		this.induceButton.addEventListener('mouseenter', appearTooltip);
 	}
 
 	activate(editor: Editor) {

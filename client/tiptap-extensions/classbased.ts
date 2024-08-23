@@ -74,7 +74,6 @@ export const ClassBasedNode = Extension.create({
 	name: 'classBasedNode',
 
 	addGlobalAttributes() {
-		console.log(this);
 		return [{
 			types: ['paragraph'],
 			attributes: {

@@ -77,10 +77,11 @@
 				& + ul[role="menu"] {
 					display: none;
 					position: fixed;
-					width: max-content;
 					top: 0;
 					left: 0;
+					width: max-content;
 					padding: inherit;
+					margin: 0;
 					list-style: none;
 					background-color: inherit;
 					border-color: black;
@@ -108,6 +109,32 @@
 			> svg {
 				vertical-align: middle;
 				display: inline;
+			}
+		}
+
+		.tooltip {
+			position: fixed;
+			top: 0;
+			left: 0;
+			color: var(--bs-tooltip-color, $richtext-tooltip-color);
+			background: var(--bs-tooltip-bg, $richtext-tooltip-background);
+			padding: var(--bs-tooltip-padding-y, 0.25rem) var(--bs-tooltip-padding-x, 0.5rem);
+			border-radius: var(--bs-tooltip-radius, 3px);
+
+			> .arrow {
+				width: 10px;
+				height: 10px;
+				position: absolute;
+				padding: 0;
+				margin: 0;
+				bottom: -10px;
+				left: calc(50% - 5px);
+				border-width: 5px;
+				border-top-color: var(--bs-tooltip-bg, #000);
+				border-left-color: transparent;
+				border-right-color: transparent;
+				border-bottom-color: transparent;
+				border-style: solid;
 			}
 		}
 	}
