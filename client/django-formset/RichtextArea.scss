@@ -23,12 +23,12 @@
 		[role="group"] {
 			padding: 0;
 			&.has-sibling::after {
-				content: url('data:image/svg+xml; utf8, <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 24" width="4" height="24" fill="currentColor"><path d="M 1,23 V 1 h 2 v 22 z" /></svg>');
+				content: url('data:image/svg+xml; utf8, <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 24" width="3" height="24" fill="currentColor"><path d="M 1,23 V 1 h 1 v 22 z" /></svg>');
 				display: inline-block;
 				opacity: var(--button-opacity);
 				vertical-align: middle;
 				height: 24px;
-				width: 4px;
+				width: 3px;
 			}
 		}
 
