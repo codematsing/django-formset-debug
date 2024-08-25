@@ -136,6 +136,20 @@ line_height_classes = {
 }
 
 
+margin_bottom_classes = {
+    'margin-bottom-1': "Small",
+    'margin-bottom-2': "Medium",
+    'margin-bottom-3': "Double",
+}
+
+
+class MarginBottom(controls.ClassBaseControlElement):
+    extension = 'marginBottom'
+    label = "Margin Bottom"
+    icon = 'testapp/margin-bottom.svg'
+    extension_type = 'node'
+
+
 class AdvertisementForm(forms.Form):
     ad_text = fields.CharField(
         widget=RichTextarea(control_elements=[
@@ -154,6 +168,7 @@ class AdvertisementForm(forms.Form):
                 controls.FontFamily(font_family_classes),
                 controls.FontSize(font_size_classes),
                 controls.LineHeight(line_height_classes),
+                MarginBottom(margin_bottom_classes),
                 controls.TextIndent(),
                 controls.TextIndent('outdent'),
                 controls.TextMargin('increase'),
