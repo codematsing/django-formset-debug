@@ -1,4 +1,4 @@
-import {Extension, Mark} from '@tiptap/core';
+import {Extension, Mark, getNodeAttributes} from '@tiptap/core';
 
 declare module '@tiptap/core' {
 	interface Commands<ReturnType> {
@@ -7,8 +7,7 @@ declare module '@tiptap/core' {
 			unsetMarkClass: (name: string) => ReturnType,
 		},
 		classBasedNode: {
-			setNodeClass: (name: string, cssClass: string) => ReturnType,
-			unsetNodeClass: (name: string) => ReturnType,
+			toggleNodeClass: (cssClass: string|null, allowedClasses: Set<string>) => ReturnType,
 		},
 	}
 }
@@ -29,8 +28,9 @@ export const ClassBasedMark = Mark.create({
 				default: null,
 				parseHTML: (element: HTMLElement) => {
 					for (let cssClass of this.options.allowedClasses) {
-						if (element.classList.contains(cssClass))
+						if (element.classList.contains(cssClass)) {
 							return cssClass;
+						}
 					}
 				},
 				renderHTML: (attributes: Record<string, any>) => {
@@ -45,8 +45,9 @@ export const ClassBasedMark = Mark.create({
 			tag: 'span',
 			getAttrs: (element: HTMLElement) => {
 				if (element instanceof HTMLElement) {
-					if (this.options.allowedClasses.some((cssClass: string) => element.classList.contains(cssClass)))
+					if (this.options.allowedClasses.some((cssClass: string) => element.classList.contains(cssClass))) {
 						return {};
+					}
 				}
 				return false;
 			},
@@ -73,19 +74,21 @@ export const ClassBasedMark = Mark.create({
 export const ClassBasedNode = Extension.create({
 	name: 'classBasedNode',
 
+	addOptions() {
+		return {
+			types: ['paragraph', 'heading'],
+		}
+	},
+
 	addGlobalAttributes() {
 		return [{
-			types: ['paragraph'],
+			types: this.options.types,
 			attributes: {
-				cssClass: {
+				cssClasses: {
 					default: null,
-					parseHTML: element => element.getAttribute('class') ?? '',
+					parseHTML: element => element.classList.value,
 					renderHTML: attributes => {
-						if (!attributes.cssClass)
-							return {};
-						return {
-							'class': attributes.cssClass,
-						}
+						return attributes.cssClasses ? {class: attributes.cssClasses} : {};
 					},
 				},
 			},
@@ -94,11 +97,18 @@ export const ClassBasedNode = Extension.create({
 
 	addCommands() {
 		return {
-			setNodeClass: (name: string, cssClass: string) => ({commands}) => {
-				return commands.updateAttributes('paragraph', {cssClass});
-			},
-			unsetNodeClass: (name: string) => ({commands}) => {
-				return commands.resetAttributes('paragraph', ['cssClass']);
+			toggleNodeClass: (cssClass: string|null, allowedClasses: Set<string>) => ({commands, state}) => {
+				return this.options.types.every((type: string) => {
+					const currentClass = getNodeAttributes(state, type).cssClasses ?? '';
+					const currentClasses = new Set<string>(currentClass.split(' '));
+					const newClasses = currentClasses.difference(allowedClasses);
+					if (cssClass) {
+						newClasses.add(cssClass);
+					}
+					return commands.updateAttributes(type, {
+						cssClasses: Array.from(newClasses).filter(c => c).join(' ')
+					});
+				});
 			},
 		};
 	},

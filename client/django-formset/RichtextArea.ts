@@ -356,7 +356,7 @@ namespace controls {
 	}
 
 	abstract class ClassBasedDropdownAction extends DropdownAction {
-		protected allowedClasses: Array<string> = [];
+		protected allowedClasses = new Set<string>();
 
 		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
 			const parts = name.split(':');
@@ -375,7 +375,7 @@ namespace controls {
 				if (!cssClass)
 					return;
 				if (/^-?[_a-zA-Z]+[_a-zA-Z0-9-]*$/.test(cssClass)) {
-					this.allowedClasses.push(cssClass);
+					this.allowedClasses.add(cssClass);
 				} else {
 					throw new Error(`${cssClass} is not a valid CSS class.`);
 				}
@@ -397,7 +397,7 @@ namespace controls {
 			let isActive = false;
 			this.dropdownItems.forEach(element => {
 				const cssClass = this.extractClass(element);
-				if (cssClass && this.allowedClasses.includes(cssClass) && this.isActive(editor, cssClass)) {
+				if (cssClass && this.allowedClasses.has(cssClass) && this.isActive(editor, cssClass)) {
 					isActive = true;
 				}
 			});
@@ -428,7 +428,7 @@ namespace controls {
 		extendExtensions(extensions: Array<Extension|Mark|Node>) {
 			if (extensions.find(e => e.name === this.name))
 				throw new Error(`RichtextArea allows only one control element with '${this.name}'.`);
-			extensions.push(this.tiptapExtension.configure({allowedClasses: this.allowedClasses}));
+			extensions.push(this.tiptapExtension.configure({allowedClasses: Array.from(this.allowedClasses)}));
 		}
 
 		protected isActive(editor: Editor, cssClass: string): boolean {
@@ -469,7 +469,7 @@ namespace controls {
 		}
 
 		protected isActive(editor: Editor, cssClass: string): boolean {
-			return editor.isActive({cssClass});
+			return Boolean(cssClass) && editor.isActive({cssClasses: new RegExp(cssClass)});
 		}
 
 		protected toggleItem(event: MouseEvent, editor: Editor) {
@@ -477,11 +477,7 @@ namespace controls {
 			while (element) {
 				if (element.role === 'menuitem') {
 					const cssClass = this.extractClass(element);
-					if (cssClass) {
-						editor.chain().focus().setNodeClass(this.name, cssClass).run();
-					} else {
-						editor.chain().focus().unsetNodeClass(this.name).run();
-					}
+					editor.chain().focus().toggleNodeClass(cssClass, this.allowedClasses).run();
 					this.activate(editor);
 					this.toggleMenu(editor, false);
 					break;
