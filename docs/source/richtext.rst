@@ -222,13 +222,66 @@ control elements. Each group shows a vertical bar for visual separation unless i
 entry in the current line. It hence can be used to group buttons which belong together.
 
 
+Generic Control Elements
+------------------------
+
+TipTap offers a wide range of formatting options, which can be added to the editor. For customized
+extensions, one however must provide their own `extension class written in JavaScript
+<https://tiptap.dev/docs/editor/extensions/custom-extensions>`_.
+
+When creating a control element for the RichtextArea, we often just need to provide a set of CSS
+classes which can be used to style some text. The chosen CSS class out of this set of options then
+is applied to the selected text, resulting in a ``<span class="…">styled text</span>``-element. For
+a Django developer it would be very tedious to write a JavaScript extension for each of these
+formatting options. Therefore **django-formset** offers a generic control element, which can be
+configured using a list of CSS classes. This control element then adds a drop down menu to the
+editor's toolbar and allows the user to select one of the provided classes, which in turn are
+applied to the selected text.
+
+As an example, assume that we want to be able apply special styling to some text, for instance to
+mark it. We then can create a control element like this:
+
+.. code-block:: python
+
+	from formset.richtext.controls import ClassBaseControlElement
+
+	class MarkControl(ClassBaseControlElement):
+	    extension = 'markText'
+	    label = _("Mark Text")
+
+When declaring the RichtextArea widget, we then can add this control element to the list of control
+elements:
+
+.. code-block:: python
+
+	class BlogForm(forms.Form):
+	    text = fields.CharField(widget=RichTextarea(control_elements=[
+	        ...
+	        MarkControl({
+	            'text-red': "Red",
+	            'text-green': "Green",
+	            'text-blue': "Blue",
+	        }),
+	        ...
+	    ])
+
+Now, when the user selects some text and clicks on the button labeled "Mark Text", a drop down menu
+will appear, offering the options "Red", "Green" and "Blue". When selecting one of these options,
+a span element with the selected CSS class will be wrapped around the selected text. When
+implementing this, do not forget to declare the named CSS classes in its CSS file.
+
+A variant of the above control element is, when the CSS shall not be applied to the selected text,
+but the a whole block. This can be achieved by adding the member ``extension_type = 'node'`` to the
+class inheriting from ``ClassBaseControlElement``.
+
+
 Composed Formatting Options
 ---------------------------
 
 In addition to the simple formatting options, **django-formset** offer some control elements which
 require multiple parameters. They use the class :class:`formset.richtext.controls.DialogControl`,
-which when clicked opens a :ref:`dialog-form`. As its only argument, it takes an instance of a
-dialog form. Check the possible options below:
+which when clicked opens a :ref:`Dialog Form <dialog-forms>`. As its only argument, it takes an
+instance of a dialog form. Check the possible options below:
 
 Here are the built-in dialog forms:
 

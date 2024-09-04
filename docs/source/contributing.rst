@@ -90,8 +90,9 @@ those double quotes do not have to be escaped.
 Lists versus Tuples
 ===================
 
-Unfortunately in Django, `we developers far too often`_ intermixed lists and tuples without being
-aware of their intention. Therefore please follow this rule:
+Unfortunately in Django and Python, `we developers far too often
+<https://groups.google.com/g/django-developers/c/h4FSYWzMJhs>`_ intermixed lists and tuples without
+being aware of their intention. Therefore please follow this rule:
 
 Always use lists, if there is a theoretical possibility that someday, someone might add another
 item. Therefore ``list_display``, ``list_display_links``, ``fields``, etc. must always be lists.
@@ -112,5 +113,3 @@ A ``ChoiceField`` must provide a list of choices. Attribute ``choices`` must be 
 it is eligible for extension. Its inner items however must be tuples, because they can exlusively
 containin the choice value and a human readable label. Here we also intermix single with double
 quotes to distinguish strings intended to be read by the machine versus a human.
-
-.. _we developers far too often: https://groups.google.com/g/django-developers/c/h4FSYWzMJhs
