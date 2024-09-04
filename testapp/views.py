@@ -41,6 +41,7 @@ from testapp.forms.contact import (
 )
 from testapp.forms.birthdate import BirthdateBoxForm, BirthdateCalendarForm, BirthdateInputForm, BirthdatePickerForm
 from testapp.forms.booking import BookingBoxForm, BookingCalendarForm, BookingPickerForm
+from testapp.forms.cafeteria import CafeteriaCollection
 from testapp.forms.country import CountryForm
 from testapp.forms.county import CountyForm
 from testapp.forms.customer import CustomerCollection
@@ -573,6 +574,9 @@ urlpatterns = [
         template_name='testapp/form-collection-no-buttons.html',
     ), name='simplecontact'),
     path('issue', IssueCollectionView.as_view(), name='issue'),
+    path('cafeteria', DemoFormCollectionView.as_view(
+        collection_class=CafeteriaCollection,
+    ), name='simplecontact'),
     path('customer', DemoFormCollectionView.as_view(
         collection_class=CustomerCollection,
     ), name='customer'),
