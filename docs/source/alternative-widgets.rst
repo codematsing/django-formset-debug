@@ -12,7 +12,7 @@ widgets, but they usually require writing extra client code, contradicting the D
 Many alternative widgets have to communicate with a server endpoint in order to fetch additional
 data. This is the reason why some of the views require a mixin class to handle that extra endpoint.
 Therefore with **django-formset** the developer can completely focus on the server side. Here is
-a of currently implemented widgets:
+a list of currently implemented widgets:
 
 
 Widgets for Choice Fields
