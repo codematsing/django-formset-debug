@@ -1,5 +1,17 @@
 ## Changes
 
+- 1.6
+  * Always apply 6 rows to the calendar widget to prevent resizing when paginating.
+  * To ``RichtextArea`` widget, add control elements to select font family, font size and line
+    spacing.
+  * Fix: Only find direct dialog element for a menu button. This caused problems when nesting
+    multiple richtext areas.
+  * Fix: Selectize widget did not apply proper styles if group elements are nested.
+  * Fix: FormDialog loaded main stylesheet unnecessarily
+  * Fix in RichtextArea widget: limit width of sub-dialogs to main textarea.
+  * RichtextArea widget: Menu items can be grouped in menubar to wrap consistently.
+  * RichtextArea widget: Add classbased Node- and Mark control-elements.
+
 - 1.5.2
   * Fix naming issue in interactive docs, preventing the dialog not to close.
   * Fix in RichtextArea: Dropdown menu did not show up at the right position.
