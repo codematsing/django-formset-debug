@@ -151,6 +151,7 @@ class IncompleteSelectMixin:
                 attrs['incomplete'] = True
             if self.filter_by:
                 attrs['filter-by'] = ','.join(self.filter_by.keys())
+                # attrs['incomplete'] = True
         return attrs
 
     def get_context(self, name, value, attrs):
@@ -293,8 +294,10 @@ class CountrySelectizeMultiple(SelectizeMultiple):
 
 class DualSelector(IncompleteSelectMixin, SelectMultiple):
     """
+
     Render widget suitable for the <select is="django-dual-selector"> widget
     """
+    allow_multiple_selected = False
     template_name = 'formset/default/widgets/dual_selector.html'
 
 

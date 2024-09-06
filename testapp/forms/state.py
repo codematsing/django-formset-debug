@@ -13,7 +13,7 @@ class StateForm(forms.Form):
 
     state = models.ModelChoiceField(
         label="State",
-        queryset=State.objects.all(),
+        queryset=State.objects.filter(code__in=['AZ', 'CA']),
         widget=Selectize(
             search_lookup='name__icontains',
         ),
@@ -22,7 +22,7 @@ class StateForm(forms.Form):
 
     county = models.ModelChoiceField(
         label="County",
-        queryset=County.objects.order_by('?')[:200],
+        queryset=County.objects.filter(state__code__in=['AZ', 'CA']),
         widget=Selectize(
             search_lookup=['name__icontains'],
             filter_by={'state': 'state__id'},
