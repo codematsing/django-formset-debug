@@ -1,6 +1,7 @@
 from django.forms import forms, models
 
 from formset.widgets import DualSelector, Selectize, SelectizeMultiple
+from formset.collection import FormCollection
 
 from testapp.models import County, State
 
@@ -16,17 +17,17 @@ class StateForm(forms.Form):
         widget=Selectize(
             search_lookup='name__icontains',
         ),
-        initial=2,
+        # initial=2,
     )
 
     county = models.ModelChoiceField(
         label="County",
-        queryset=County.objects.all(),
+        queryset=County.objects.order_by('?')[:200],
         widget=Selectize(
             search_lookup=['name__icontains'],
             filter_by={'state': 'state__id'},
         ),
-        initial=70,
+        # initial=70,
     )
 
     counties = models.ModelMultipleChoiceField(
@@ -40,7 +41,7 @@ class StateForm(forms.Form):
             search_lookup=['name__icontains'],
             filter_by={'state': 'state__id'},
         ),
-        initial=[3, 70, 2940],
+        # initial=[3, 70, 2940],
     )
 
 
@@ -56,19 +57,22 @@ class StatesForm(forms.Form):
             search_lookup='name__icontains',
         ),
         required=False,
-        initial=[2, 47],
+        # initial=[2, 47],
     )
 
     counties = models.ModelMultipleChoiceField(
         label="Counties",
         queryset=County.objects.all(),
-        # widget=SelectizeMultiple(
-        #     search_lookup=['name__icontains'],
-        #     filter_by={'states': 'state__id'},
-        # ),
-        widget=DualSelector(
+        widget=SelectizeMultiple(
             search_lookup=['name__icontains'],
             filter_by={'states': 'state__id'},
         ),
+        # widget=DualSelector(
+        #     search_lookup=['name__icontains'],
+        #     filter_by={'states': 'state__id'},
+        # ),
         # initial=[3, 70, 2940],
     )
+
+class StateFormCollection(FormCollection):
+    state_form = StatesForm()
