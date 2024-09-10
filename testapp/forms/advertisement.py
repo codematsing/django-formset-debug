@@ -109,15 +109,15 @@ class CustomHyperlinkDialogForm(dialogs.RichtextDialogForm):
 
 
 font_family_classes = {
-    'open-sans-regular': 'Open Sans',
-    'dancing-script-regular': 'Dancing Script',
-    'lato-regular': 'Lato',
-    'merriweather-regular': 'Merriweather',
-    'montserrat-regular': 'Montserrat',
-    'roboto-regular': 'Roboto',
-    'pacifio-regular': 'Pacifico',
-    'incosolata-regular': 'Incosolata',
-    'playfair-display-regular': 'Playfair Display',
+    'open-sans-regular': "Open Sans",
+    'dancing-script-regular': "Dancing Script",
+    'lato-regular': "Lato",
+    'merriweather-regular': "Merriweather",
+    'montserrat-regular': "Montserrat",
+    'roboto-regular': "Roboto",
+    'pacifio-regular': "Pacifico",
+    'incosolata-regular': "Incosolata",
+    'playfair-display-regular': "Playfair Display",
 }
 
 

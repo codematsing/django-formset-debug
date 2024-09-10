@@ -166,12 +166,13 @@ def select_text(paragraph, start, end):
     }}''')
 
 
-def set_caret(page, position):
+def set_caret(page, contenteditable, position):
+    contenteditable.click(position={'x': 2, 'y': 2})
     page.keyboard.press('Home')
+    sleep(0.05)
     for _ in range(position):
         page.keyboard.press('ArrowRight')
-        sleep(0.02)
-    sleep(0.1)
+        sleep(0.05)
 
 
 @pytest.mark.urls(__name__)
@@ -185,9 +186,7 @@ def test_tiptap_marks(page, viewname, menubar, contenteditable, control):
     button = menubar.locator(f'[richtext-click="{control[0]}"]')
     button.click()
     assert contenteditable.inner_html() == f"<p>{lorem[:6]}<{control[1]}>{lorem[6:11]}</{control[1]}>{lorem[11:]}</p>"
-    # contenteditable.click(position={'x': 2, 'y': 2})
-    contenteditable.focus()
-    set_caret(page, 9)
+    set_caret(page, contenteditable, 9)
     expect(button).to_have_class('active')
 
 
@@ -197,7 +196,7 @@ def test_tiptap_heading(page, viewname, menubar, contenteditable):
     heading = "Tiptap Editor"
     contenteditable.type(heading)
     assert contenteditable.inner_html() == f"<p>{heading}</p>"
-    set_caret(page, 0)
+    set_caret(page, contenteditable, 0)
     menu_button = menubar.locator('[richtext-click="heading"]')
     submenu = menubar.locator('[richtext-click="heading"] + ul[role="menu"]')
     expect(submenu).not_to_be_visible()
@@ -205,9 +204,7 @@ def test_tiptap_heading(page, viewname, menubar, contenteditable):
     expect(submenu).to_be_visible()
     submenu.locator('[richtext-click="heading:1"]').click()
     assert contenteditable.inner_html() == f"<h1>{heading}</h1>"
-    # contenteditable.click(position={'x': 100, 'y': 20})
-    contenteditable.focus()
-    set_caret(page, 5)
+    set_caret(page, contenteditable, 5)
     expect(menu_button).to_have_class('active')
     expect(submenu).not_to_be_visible()
     menu_button.click()
@@ -223,13 +220,11 @@ def test_tiptap_blockquote(page, viewname, menubar, contenteditable):
     block = "Tiptap Block"
     contenteditable.type(block)
     assert contenteditable.inner_html() == f"<p>{block}</p>"
-    set_caret(page, 0)
+    set_caret(page, contenteditable, 0)
     menu_button = menubar.locator('[richtext-click="blockquote"]')
     menu_button.click()
     assert contenteditable.inner_html() == f"<blockquote><p>{block}</p></blockquote>"
-    # contenteditable.click(position={'x': 100, 'y': 20})
-    contenteditable.focus()
-    set_caret(page, 5)
+    set_caret(page, contenteditable, 5)
     expect(menu_button).to_have_class('active')
 
 
@@ -247,12 +242,10 @@ def test_tiptap_classbased_mark(page, viewname, menubar, contenteditable):
     expect(submenu_items).to_have_count(4)
     submenu_items.nth(2).click()
     assert contenteditable.inner_html() == '<p>Lorem <span class="font-family-b">ipsum dolor</span> sit amet.</p>'
-    # contenteditable.click(position={'x': 100, 'y': 20})
-    contenteditable.focus()
-    set_caret(page, 8)
+    set_caret(page, contenteditable, 8)
     expect(family_menu_button).to_have_class('active')
     expect(submenu_items.nth(2)).to_have_class('active')
-    set_caret(page, 18)
+    set_caret(page, contenteditable, 18)
     expect(family_menu_button).not_to_have_class('active')
     family_menu_button.click()
     for item in submenu_items.all():
@@ -266,28 +259,19 @@ def test_tiptap_classbased_mark(page, viewname, menubar, contenteditable):
     expect(submenu_items).to_have_count(4)
     submenu_items.nth(2).click()
     assert contenteditable.inner_html() == '<p>Lorem <span class="font-family-b">ipsum<span class="font-size-medium"> dolor</span></span><span class="font-size-medium"> sit</span> amet.</p>'
-    # contenteditable.click(position={'x': 100, 'y': 20})
-    contenteditable.focus()
-    set_caret(page, 8)
+    set_caret(page, contenteditable, 8)
     expect(family_menu_button).to_have_class('active')
     expect(size_menu_button).not_to_have_class('active')
-    set_caret(page, 18)
+    set_caret(page, contenteditable, 18)
     expect(family_menu_button).not_to_have_class('active')
     expect(size_menu_button).to_have_class('active')
-    expect(submenu_items.nth(2)).to_have_class('active')
-    set_caret(page, 3)
+    page.screenshot(path='screenshot.png')
+    set_caret(page, contenteditable, 3)
     expect(family_menu_button).not_to_have_class('active')
     expect(size_menu_button).not_to_have_class('active')
     size_menu_button.click()
     for item in submenu_items.all():
         expect(item).not_to_have_class('active')
-
-
-    # test adding bold
-    # select_text(contenteditable.locator('p'), 8, 19)
-    # size_menu_button = menubar.locator('[richtext-click="bold"]')
-    # size_menu_button.click()
-    # assert contenteditable.inner_html() == '<p>Lorem <span class="font-family-b">ipsum<span class="font-size-medium"> dolor</span></span><span class="font-size-medium"> sit</span> amet.</p>'
 
 
 @pytest.mark.urls(__name__)
@@ -314,9 +298,9 @@ def test_tiptap_valid_simple_link(page, viewname, richtext_wrapper, menubar, con
     expect(contenteditable.locator('p')).to_have_text('Click here')
     expect(contenteditable.locator('p a')).to_have_text('here')
     expect(contenteditable.locator('p a')).to_have_attribute('href', 'https://example.org/')
-    set_caret(page, 9)
+    set_caret(page, contenteditable, 9)
     expect(menu_button).to_have_class('active')
-    set_caret(page, 2)
+    set_caret(page, contenteditable, 2)
     expect(menu_button).not_to_have_class('active')
 
 
