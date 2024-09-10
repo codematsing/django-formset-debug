@@ -109,7 +109,8 @@ as queued actions for buttons in **django-formset**:
 * ``intercept`` intercepts the response object after submission and prints it onto the browser
   console. This is only useful for debugging purposes.
 * ``intercept("<dom-selector>")`` prints the intercepted submission to a HTML element as specified
-  by the ``<dom-selector>``. This documentation makes heavy use of that feature.
+  by the ``<dom-selector>``. The documentation you're currently interacting with, makes heavy use of
+  this feature.
 
 By combining these button actions, we gain a huge set of possibilities to greatly improve the user
 experience. If for instance, form processing takes more than say one second, we shall somehow
