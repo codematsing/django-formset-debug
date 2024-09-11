@@ -265,13 +265,47 @@ def test_tiptap_classbased_mark(page, viewname, menubar, contenteditable):
     set_caret(page, contenteditable, 18)
     expect(family_menu_button).not_to_have_class('active')
     expect(size_menu_button).to_have_class('active')
-    page.screenshot(path='screenshot.png')
     set_caret(page, contenteditable, 3)
     expect(family_menu_button).not_to_have_class('active')
     expect(size_menu_button).not_to_have_class('active')
     size_menu_button.click()
     for item in submenu_items.all():
         expect(item).not_to_have_class('active')
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['plain_richtext', 'json_richtext'])
+def test_tiptap_classbased_node(page, viewname, menubar, contenteditable):
+    lorem = "Lorem ipsum dolor sit amet."
+    contenteditable.type(lorem)
+    assert contenteditable.inner_html() == f"<p>{lorem}</p>"
+    set_caret(page, contenteditable, 1)
+    lineheight_menu_button = menubar.locator('[richtext-click="classBasedNode:lineHeight"]')
+    lineheight_menu_button.click()
+    expect(lineheight_menu_button.locator('+ ul[role="menu"]')).to_be_visible()
+    submenu_items = lineheight_menu_button.locator('+ ul[role="menu"] > li')
+    expect(submenu_items).to_have_count(4)
+    submenu_items.nth(2).click()
+    assert contenteditable.inner_html() == '<p class="line-height-medium">Lorem ipsum dolor sit amet.</p>'
+    expect(lineheight_menu_button).to_have_class('active')
+    expect(lineheight_menu_button.locator('+ ul[role="menu"] > li').nth(2)).to_have_class('active')
+    marginbottom_menu_button = menubar.locator('[richtext-click="classBasedNode:marginBottom"]')
+    marginbottom_menu_button.click()
+    expect(marginbottom_menu_button.locator('+ ul[role="menu"]')).to_be_visible()
+    submenu_items = marginbottom_menu_button.locator('+ ul[role="menu"] > li')
+    expect(submenu_items).to_have_count(4)
+    submenu_items.nth(2).click()
+    assert contenteditable.inner_html() == '<p class="line-height-medium margin-bottom-2">Lorem ipsum dolor sit amet.</p>'
+    set_caret(page, contenteditable, 1)
+    expect(lineheight_menu_button).to_have_class('active')
+    expect(marginbottom_menu_button).to_have_class('active')
+    expect(marginbottom_menu_button.locator('+ ul[role="menu"] > li').nth(2)).to_have_class('active')
+    lineheight_menu_button.click()
+    submenu_items = lineheight_menu_button.locator('+ ul[role="menu"] > li')
+    submenu_items.nth(0).click()
+    set_caret(page, contenteditable, 1)
+    expect(lineheight_menu_button).not_to_have_class('active')
+    expect(marginbottom_menu_button).to_have_class('active')
 
 
 @pytest.mark.urls(__name__)
