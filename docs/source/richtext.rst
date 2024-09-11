@@ -222,6 +222,28 @@ control elements. Each group shows a vertical bar for visual separation unless i
 entry in the current line. It hence can be used to group buttons which belong together.
 
 
+.. rubic:: FontFamily
+
+The class :class:`formset.richtext.controls.FontFamily` can be used to change the font family of
+the selected text. It must be initialized with a list of two-tuples, containing the CSS class as its
+first element and a label as its second element. The ``FontFamily`` is based on the
+``ClassBaseControlElement`` control element – check below for details.
+
+
+.. rubric:: FontSize
+
+The class :class:`formset.richtext.controls.FontSize` can be used to change the font size of the
+selected text. It also is based on the ``ClassBaseControlElement`` control element and must be
+initialized with a list of two-tuples.
+
+
+.. rubric:: LineHeight
+
+The class :class:`formset.richtext.controls.LineHeight` can be used to change the line height of the
+current paragraph. It also is based on the ``ClassBaseControlElement`` control element and must be
+initialized with a list of two-tuples.
+
+
 Generic Control Elements
 ------------------------
 
@@ -231,15 +253,16 @@ extensions, one however must provide their own `extension class written in JavaS
 
 When creating a control element for the RichtextArea, we often just need to provide a set of CSS
 classes which can be used to style some text. The chosen CSS class out of this set of options then
-is applied to the selected text, resulting in a ``<span class="…">styled text</span>``-element. For
-a Django developer it would be very tedious to write a JavaScript extension for each of these
+is applied to the selected text, resulting in a ``<span class="…">styled text</span>``-element.
+
+For Django developers it would be very tedious to write a JavaScript extension for each of these
 formatting options. Therefore **django-formset** offers a generic control element, which can be
 configured using a list of CSS classes. This control element then adds a drop down menu to the
 editor's toolbar and allows the user to select one of the provided classes, which in turn are
 applied to the selected text.
 
 As an example, assume that we want to be able apply special styling to some text, for instance to
-mark it. We then can create a control element like this:
+mark it. We then can create a control element such as:
 
 .. code-block:: python
 
@@ -249,8 +272,13 @@ mark it. We then can create a control element like this:
 	    extension = 'markText'
 	    label = _("Mark Text")
 
-When declaring the RichtextArea widget, we then can add this control element to the list of control
-elements:
+The attribute ``extension`` must be a unique identifier for this control element. The attribute
+``label`` is a human readable string which will be shown as the button's tooltip. In addition, we
+may provide a symbol rendered in the button by specifying the attribute
+``icon = 'path/to/mark-icon.svg.'``.
+
+When declaring the ``RichtextArea`` widget, we then can add this custom control element to our list
+of control elements:
 
 .. code-block:: python
 
@@ -266,13 +294,16 @@ elements:
 	    ])
 
 Now, when the user selects some text and clicks on the button labeled "Mark Text", a drop down menu
-will appear, offering the options "Red", "Green" and "Blue". When selecting one of these options,
-a span element with the selected CSS class will be wrapped around the selected text. When
-implementing this, do not forget to declare the named CSS classes in its CSS file.
+will appear, offering the options "Default", "Red", "Green" and "Blue". When selecting one of these
+options, a span element with the selected CSS class will be wrapped around the selected text. The
+item labeled "Default" will remove the CSS class from the selected text.
+
+.. note:: When implementing this, do not forget to declare the named CSS classes in its CSS file.
 
 A variant of the above control element is, when the CSS shall not be applied to the selected text,
-but the a whole block. This can be achieved by adding the member ``extension_type = 'node'`` to the
-class inheriting from ``ClassBaseControlElement``.
+but to a whole block. This can be achieved by adding the member ``extension_type = 'node'`` to the
+class inheriting from ``ClassBaseControlElement``. The control element ``LineHeight`` (see above)
+is an example for this.
 
 
 Composed Formatting Options
