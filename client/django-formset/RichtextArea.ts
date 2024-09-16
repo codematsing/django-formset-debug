@@ -580,7 +580,14 @@ namespace controls {
 		protected toggleItem(event: MouseEvent, editor: Editor) {
 			let element = event.target instanceof Element ? event.target : null;
 			while (element) {
-				if (element.role === 'menuitem') {
+				if (this.dropdownItems.length === 0) {
+					if (element === this.button) {
+						const level = this.extractLevel(element);
+						editor.chain().focus().setHeading({level: level}).run();
+						this.activate(editor);
+						break;
+					}
+				} else if (element.role === 'menuitem') {
 					const level = this.extractLevel(element);
 					editor.chain().focus().setHeading({level: level}).run();
 					this.activate(editor);
