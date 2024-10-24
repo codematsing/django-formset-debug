@@ -1,12 +1,14 @@
-const inlineImportPlugin = require('./esbuild-plugin-inline-import');
-const path = require('path');
-const sass = require('sass');
-const { build } = require('esbuild');
-const buildOptions = require('yargs-parser')(process.argv.slice(2), {
+import {build} from 'esbuild';
+import inlineImportPlugin from './esbuild-plugin-inline-import.cjs';
+import path from 'path';
+import parser from 'yargs-parser';
+import * as sass from 'sass';
+
+const buildOptions = parser(process.argv.slice(2), {
   boolean: ['debug', 'monolith'],
 });
 
-build({
+await build({
   entryPoints: [buildOptions.monolith ? 'client/django-formset.monolith.ts' : 'client/django-formset.ts'],
   bundle: true,
   minify: !buildOptions.debug,

@@ -33,7 +33,7 @@ tool-chain required to build the test application:
 	npm run tag-attributes
 	npm run function-code
 	npm run tailwindcss
-	npm run esbuild
+	npm run esbuild.modular
 	npm run compilescss
 	npm run docscss
 	mkdir workdir
@@ -89,14 +89,14 @@ Building the Client
 ===================
 
 The client part consists of a few TypeScript modules which all are compiled and bundled to
-JavaScript using ``npm run esbuild``. The default TypeScript compiler used in this project is
-esbuild_, which currently is the fastest compiler of its kind.
+JavaScript using ``npm run esbuild.modular``. The default TypeScript compiler used in this project
+is esbuild_, which currently is the fastest compiler of its kind.
 
 .. _esbuild: https://esbuild.github.io/
 
 The client can be built in three ways:
 
-.. rubric:: ``npm run esbuild``
+.. rubric:: ``npm run esbuild.modular``
 
 This creates a bundle of JavaScript modules. The main entry point is found in file
 ``formset/static/formset/django-formset.js``. This file only contains the core functionality, ie.
@@ -107,14 +107,14 @@ components, such as ``<select is="django-selectize">``, ``<django-dual-selector>
 This is the default setting.
 
 
-.. rubric:: ``npm run esbuild -- --monolith``
+.. rubric:: ``npm run esbuild.monolith``
 
 This creates one single monolithic JavaScript module, named
-``formset/static/formset/django-formset.js``. In some circumstances this might be preferable over
-many splitted  modules.
+``formset/static/formset/django-formset.monolith.js``. In some circumstances this might be
+preferable over a stub file with many splitted  modules loaded on demand.
 
 
-.. rubric:: ``npm run esbuild -- --debug``
+.. rubric:: ``npm run esbuild.modular -- --debug``
 
 This compiles TypeScript to JavaScript without minimizing plus additional `source maps`_. This build
 target should be used during development of client side code. 

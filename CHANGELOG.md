@@ -11,6 +11,7 @@
   * Fix in RichtextArea widget: limit width of sub-dialogs to main textarea.
   * RichtextArea widget: Menu items can be grouped in menubar to wrap consistently.
   * RichtextArea widget: Add classbased Node- and Mark control-elements.
+  * The build target has been renamed from `esbuild` to `esbuild.modular`.
 
 - 1.5.2
   * Fix naming issue in interactive docs, preventing the dialog not to close.
