@@ -1,4 +1,4 @@
-alabaster==0.7.13
+alabaster==0.7.16
 apeye==1.4.1
 apeye-core==1.1.4
 autodocsumm==0.2.11
@@ -13,7 +13,7 @@ django-sphinx-view @ https://github.com/jrief/django-sphinx-view/archive/refs/he
 docutils==0.18.1
 domdf-python-tools==3.6.1
 filelock==3.12.4
-furo==2023.9.10
+furo==2024.8.6
 html5lib==1.1
 idna==3.4
 imagesize==1.4.1

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 from formset import __version__
 
 
@@ -21,6 +21,7 @@ CLASSIFIERS = [
     'Programming Language :: Python :: 3.12',
     'Framework :: Django :: 4.2',
     'Framework :: Django :: 5.0',
+    'Framework :: Django :: 5.1',
 ]
 
 setup(
@@ -30,9 +31,9 @@ setup(
     author='Jacob Rief',
     author_email='jacob.rief@gmail.com',
     url='https://github.com/jrief/django-formset',
-    packages=find_packages(include=['formset', 'formset.*']),
+    packages=find_namespace_packages(include=['formset', 'formset.*']),
     install_requires=[
-        'django>=4.0',
+        'django>=4.2',
     ],
     extra_requires={
         'thumbnail': ['Pillow'],
