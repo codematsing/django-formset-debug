@@ -11,6 +11,8 @@ select.ts-hidden-accessible {
 }
 
 django-formset {
+	--django-formset-fg-color: light-dark(black, white);
+	--django-formset-bg-color: light-dark(white, black);
 	--django-formset-color-invalid: #{$django-formset-color-invalid};
 	--django-formset-shadow-invalid: #{$django-formset-shadow-invalid};
 	--django-formset-color-valid: #{$django-formset-color-valid};

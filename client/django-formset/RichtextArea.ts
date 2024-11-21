@@ -52,8 +52,8 @@ function appearTooltip(event: MouseEvent) {
 		({x, y}) => Object.assign(tooltipElement!.style, {
 			left: `${x}px`,
 			top: `${y}px`,
-			opacity: '0.8',
-			transition: 'opacity 0.5s 0.25s',
+			opacity: '0.75',
+			transition: 'opacity 0.5s 1.2s',
 		})
 	);
 	button.addEventListener('mouseleave', () => tooltipElement.remove(), {once: true});
@@ -77,21 +77,6 @@ abstract class Action {
 	}
 
 	protected abstract clicked(editor: Editor): void;
-
-	protected mouseEnter() {
-		if (this.button.ariaLabel) {
-			this.tooltipElement = document.createElement('div');
-			this.tooltipElement.classList.add('tooltip');
-			this.tooltipElement.innerText = this.button.ariaLabel;
-			const arrowElement = document.createElement('div');
-			arrowElement.classList.add('arrow');
-			this.tooltipElement.appendChild(arrowElement);
-			this.button.insertAdjacentElement('beforebegin', this.tooltipElement);
-			computePosition(this.button, this.tooltipElement, {placement: 'top', strategy: 'fixed', middleware: [arrow({element: arrowElement})]}).then(
-				({x, y}) => Object.assign(this.tooltipElement!.style, {left: `${x}px`, top: `${y}px`})
-			);
-		}
-	}
 
 	activate(editor: Editor) {
 		this.button.classList.toggle('active', editor.isActive(this.name));
@@ -150,8 +135,17 @@ abstract class DropdownAction extends Action {
 			const expanded = (force !== false && this.button.ariaExpanded === 'false');
 			this.button.ariaExpanded = expanded ? 'true' : 'false';
 			if (expanded) {
+				const textAreaElement = editor.options.element.nextElementSibling;
+				const computedStyles = window.getComputedStyle(textAreaElement ?? this.button);
+				const style = {
+					backgroundColor: computedStyles.getPropertyValue('background-color'),
+					borderColor: computedStyles.getPropertyValue('border-color'),
+					boxShadow: `${computedStyles.getPropertyValue('border-color')} 0 0 5px`,
+				};
 				computePosition(this.button, this.dropdownMenu, {strategy: 'fixed'}).then(
-					({x, y}) => Object.assign(this.dropdownMenu!.style, {left: `${x}px`, top: `${y}px`})
+					({x, y}) => {
+						Object.assign(this.dropdownMenu!.style, {left: `${x}px`, top: `${y}px`, ...style});
+					}
 				);
 			}
 		}
@@ -1290,8 +1284,7 @@ class RichtextArea {
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case `${this.baseSelector} [role="menubar"] button[aria-haspopup="true"] + ul[role="menu"]`:
-					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
-						'border', 'z-index']);
+					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, ['border-radius', 'z-index']);
 					const re = new RegExp('z-index:(\\d+);');
 					const matches = extraStyles.match(re);
 					if (matches) {
@@ -1300,13 +1293,6 @@ class RichtextArea {
 						extraStyles = extraStyles.replace('z-index:auto;', 'z-index:1;');
 					}
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
-					if (this.menubarElement) {
-						extraStyles = StyleHelpers.extractStyles(document.documentElement, ['background-color']);
-						if (extraStyles === 'background-color:rgba(0, 0, 0, 0); ') {
-							extraStyles = 'background-color:rgb(255, 255, 255);'
-						}
-						sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
-					}
 					break;
 				default:
 					break;
