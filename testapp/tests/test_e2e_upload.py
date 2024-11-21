@@ -5,7 +5,6 @@ from pathlib import Path
 from playwright.sync_api import expect
 from time import sleep
 
-from django.conf import settings
 from django.core.signing import get_cookie_signer
 from django.urls import path
 
@@ -28,7 +27,7 @@ urlpatterns.append(get_javascript_catalog())
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
-def test_upload_image(page, mocker, viewname):
+def test_upload_image(page, mocker, settings, viewname):
     choose_file_button = page.locator('django-formset .dj-form button.dj-choose-file')
     expect(choose_file_button).to_be_visible()  # that button would open the file selector
     dropbox = page.locator('django-formset .dj-form figure.dj-dropbox')
