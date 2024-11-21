@@ -6,9 +6,11 @@ Default Widgets
 
 **django-formset** supports all standard widgets, Django provides out of the box. This includes the
 ``MultipleChoiceField`` with the ``CheckboxSelectMultiple`` widget and the ``ChoiceField`` with the
-``RadioSelect`` widget. The latter also includes option groups and is explicitly mentioned here,
-because these special cases are rarely used and none of the supported CSS frameworks even mention
+``RadioSelect`` widget. The latter also includes `option groups`_ and is explicitly mentioned here,
+because these special cases are rarely used and none of the supported CSS frameworks even mentions
 them.
+
+.. _option groups: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/optgroup
 
 This example form uses all standard widgets Django provides out of the box. They do not require
 any client-side implementation and are implemented in pure HTML, just using specially designed
@@ -163,5 +165,5 @@ horizontally, while others are aligned vertically. This is intended behavior and
 using the parameter ``max_options_per_line`` when configuring its :ref:`form-renderer`.
 
 In addition to the default widgets shown here, **django-formset** offers a set of
-:ref:`alternative-widgets`, which offer more functionality but also require a client-side
+:ref:`alternative-widgets`, which offer more functionality but additionally require a client-side
 implementation.

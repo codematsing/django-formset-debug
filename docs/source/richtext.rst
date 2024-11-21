@@ -222,7 +222,7 @@ control elements. Each group shows a vertical bar for visual separation unless i
 entry in the current line. It hence can be used to group buttons which belong together.
 
 
-.. rubic:: FontFamily
+.. rubric:: FontFamily
 
 The class :class:`formset.richtext.controls.FontFamily` can be used to change the font family of
 the selected text. It must be initialized with a list of two-tuples, containing the CSS class as its

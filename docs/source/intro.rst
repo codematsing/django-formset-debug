@@ -64,7 +64,7 @@ By using **django-formset** on the other hand, each Django form corresponds to i
 self-contained ``<form>``-element. Inside each of these forms, all field names remain unmodified
 and on submission, each form introduces its own namespace, so that the form data is submitted as a
 dictionary of field-value-pairs, where each value can be a sub-dictionary or array (JSON). By doing
-so, we can nest forms deeply, something currently not possible with Django FormSets_. The
+so, we can nest forms deeply, something currently not possible with Django FormSets_. This approach
 furthermore allows to validate each form individually, using the validation functions built into the
 browser. 
 
@@ -93,7 +93,6 @@ slightly modified Django view:
 	        error_messages={'invalid': "A first name must start in upper case."},
 	        help_text="Must start in upper case followed by one or more lowercase characters.",
 	    )
-
 	    last_name = fields.CharField(
 	        label="Last name",
 	        min_length=2,
