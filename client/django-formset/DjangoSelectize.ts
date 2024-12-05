@@ -1,19 +1,17 @@
+import debounce from 'lodash.debounce';
 import isFinite from 'lodash.isfinite';
 import isString from 'lodash.isstring';
-import TomSelect from 'tom-select/src/tom-select';
-import {TomSettings} from 'tom-select/src/types/settings';
-import {RecursivePartial, TomOption} from 'tom-select/src/types';
-import TomSelect_remove_button from 'tom-select/src/plugins/remove_button/plugin';
+import TomSelect from 'tom-select';
+import {RecursivePartial, TomSettings} from 'tom-select/src/types';
 import {IncompleteSelect} from './IncompleteSelect';
 import {StyleHelpers} from './helpers';
 import styles from './DjangoSelectize.scss';
 
-TomSelect.define('remove_button', TomSelect_remove_button);
-
 
 export class DjangoSelectize extends IncompleteSelect {
 	protected readonly shadowRoot: ShadowRoot;
-	private static styleSheet: CSSStyleSheet|null = null;
+	private static styleSheet: CSSStyleSheet = new CSSStyleSheet();
+	private static nativeStyles: CSSStyleDeclaration|null = null;
 	private readonly numOptions: number = 12;
 	public readonly tomSelect: TomSelect;
 	private readonly observer: MutationObserver;
@@ -29,7 +27,7 @@ export class DjangoSelectize extends IncompleteSelect {
 			tomInput.removeAttribute('multiple');
 			isMultiple = true;
 		}
-		const nativeStyles = {...window.getComputedStyle(tomInput)} as CSSStyleDeclaration;
+		DjangoSelectize.nativeStyles = DjangoSelectize.nativeStyles ?? {...window.getComputedStyle(tomInput)} as CSSStyleDeclaration;
 		if (isMultiple) {
 			// revert the above
 			tomInput.setAttribute('multiple', 'multiple');
@@ -41,8 +39,8 @@ export class DjangoSelectize extends IncompleteSelect {
 		this.initialValue = this.currentValue;
 		this.uniqueIdentifier = `ds-${Math.random().toString(36).substring(2, 15)}`;
 		this.shadowRoot = this.wrapInShadowRoot();
-		DjangoSelectize.styleSheet = DjangoSelectize.styleSheet ?? this.transferStyles(nativeStyles);
-		this.appendIndividualStyleSheet(DjangoSelectize.styleSheet);
+		this.transferStyles();
+		this.appendIndividualStyleSheet();
 		tomInput.classList.add('dj-concealed');
 		this.validateInput(this.initialValue as string);
 	}
@@ -57,7 +55,6 @@ export class DjangoSelectize extends IncompleteSelect {
 			sortField: [{field: '$order'}, {field: '$score'}],
 			lockOptgroupOrder: true,
 			searchField: ['label'],
-			render: {},
 			plugins: {},
 			onFocus: this.touch,
 			onBlur: this.blurred,
@@ -176,10 +173,12 @@ export class DjangoSelectize extends IncompleteSelect {
 		return shadowRoot;
 	}
 
-	private transferStyles(nativeStyles: CSSStyleDeclaration) : CSSStyleSheet {
+	private transferStyles() {
+		if (DjangoSelectize.nativeStyles === null)
+			throw new Error("Native styles not loaded");
+		const sheet = DjangoSelectize.styleSheet;
 		const wrapperStyle = (this.shadowRoot.host as HTMLElement).style;
-		wrapperStyle.setProperty('display', nativeStyles.display);
-		const sheet = new CSSStyleSheet();
+		wrapperStyle.setProperty('display', DjangoSelectize.nativeStyles.display);
 		sheet.replaceSync(styles);
 		const tomInput = this.tomSelect.input;
 		const lineHeight = window.getComputedStyle(tomInput).getPropertyValue('line-height');
@@ -200,10 +199,19 @@ export class DjangoSelectize extends IncompleteSelect {
 					break;
 				case `${this.baseSelector} .ts-control`:
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
-						'background-color', 'border', 'border-radius', 'box-shadow', 'color',
-						'padding']).concat(
-						`min-height: ${nativeStyles['height']};`
+						'border-width', 'border-style', 'border-radius', 'padding', 'transition'
+					]).concat(
+						`min-height: ${DjangoSelectize.nativeStyles['height']};`
 					);
+					break;
+				case `${this.baseSelector}.focus .ts-control`:
+					tomInput.style.transition = 'none';
+					tomInput.classList.add('-focus-');
+					extraStyles = StyleHelpers.extractStyles(tomInput, [
+						'border-color', 'box-shadow','outline', 'transition'
+					]);
+					tomInput.classList.remove('-focus-');
+					tomInput.style.transition = '';
 					break;
 				case `${this.baseSelector} .ts-control > input`:
 				case `${this.baseSelector} .ts-control > div`:
@@ -216,15 +224,6 @@ export class DjangoSelectize extends IncompleteSelect {
 					extraStyles = StyleHelpers.extractStyles(tomInput, ['background-color', 'color']);
 					tomInput.classList.remove('-placeholder-');
 					break;
-				case `${this.baseSelector}.focus .ts-control`:
-					tomInput.style.transition = 'none';
-					tomInput.classList.add('-focus-');
-					extraStyles = StyleHelpers.extractStyles(tomInput, [
-						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition'
-					]);
-					tomInput.classList.remove('-focus-');
-					tomInput.style.transition = '';
-					break;
 				case `${this.baseSelector}.disabled .ts-control`:
 					tomInput.classList.add('-disabled-');
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
@@ -234,7 +233,8 @@ export class DjangoSelectize extends IncompleteSelect {
 					break;
 				case `${this.baseSelector} .ts-dropdown`:
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
-						'border-right', 'border-bottom', 'border-left', 'color'
+						'border-right', 'border-bottom', 'border-left',
+						'border-bottom-left-radius', 'border-bottom-right-radius',
 					]).concat(
 						parseFloat(lineHeight) > 0 ? `line-height: calc(${lineHeight} * 1.2);` : 'line-height: 1.4em;'
 					);
@@ -267,15 +267,15 @@ export class DjangoSelectize extends IncompleteSelect {
 		}
 		if (!loaded)
 			throw new Error(`Could not load styles for ${this.baseSelector}`);
-		return sheet;
 	}
 
-	private appendIndividualStyleSheet(sheet: CSSStyleSheet) {
+	private appendIndividualStyleSheet() {
 		// `:host-context()` does not work with `:has()` or other complex selectors. Therefore, it is impossible to
 		// use it as a selector for the shadow root of this individual component. To apply styles to this shadow root's
 		// instance, depending on context of the host element, we use a unique CSS class. This class is added during
 		// initialization to the wrapping element of the shadow root, see `wrapInShadowRoot()`.
 		// Here we replace the `:host-context()`-selectors with that individual class.
+		const sheet = DjangoSelectize.styleSheet;
 		const individualSheet = new CSSStyleSheet();
 		for (let index = 0; sheet && index < sheet.cssRules.length; index++) {
 			const cssRule = sheet.cssRules.item(index) as CSSStyleRule;
@@ -294,7 +294,6 @@ export class DjangoSelectize extends IncompleteSelect {
 
 	public initialize() {
 		const sheet = this.shadowRoot.adoptedStyleSheets[0];
-		const controlStyleStlector = `${this.baseSelector} .ts-control`;
 		if (!DjangoSelectize.styleSheet)
 			throw new Error('Stylesheet not loaded');
 		for (let index = 0; index < DjangoSelectize.styleSheet.cssRules.length; index++) {
@@ -302,13 +301,35 @@ export class DjangoSelectize extends IncompleteSelect {
 			sheet.insertRule(cssRule.cssText);
 		}
 
-		const currentWidth = () => window.getComputedStyle(this.tomSelect.input).getPropertyValue('width');
-		const widthRuleIndex = sheet.insertRule(`${controlStyleStlector}{width:${currentWidth()};}`);
-		addEventListener('resize', (event) => {
-			sheet.deleteRule(widthRuleIndex);
-			sheet.insertRule(`${controlStyleStlector}{width:${currentWidth()};}`, widthRuleIndex);
-		});
-		this.setupFilters(this.tomSelect.input as HTMLSelectElement);
+		// some styles might change during runtime, so we need to update them whenever necessary
+		const tomInput = this.tomSelect.input as HTMLSelectElement;
+		tomInput.style.transition = 'none';
+		const baseStyles = () => {
+			const backgroundColor = window.getComputedStyle(tomInput).getPropertyValue('background-color');
+			return `--selectize-background-color:${backgroundColor};${StyleHelpers.extractStyles(tomInput, ['color'])};`;
+		};
+		const baseStyleRule = sheet.insertRule(`${this.baseSelector}{${baseStyles()}}`, sheet.cssRules.length);
+		const controlStyleSelector = `${this.baseSelector} .ts-control`;
+		const controlStyles = () => StyleHelpers.extractStyles(tomInput, ['border-color', 'box-shadow']);
+		const controlStyleRule = sheet.insertRule(`${controlStyleSelector}{${controlStyles()}}`, sheet.cssRules.length);
+		const dropdownStyleSelector = `${this.baseSelector} .ts-dropdown`;
+		const dropdownStyleRule = sheet.insertRule(`${dropdownStyleSelector}{${controlStyles()}}`, sheet.cssRules.length);
+		const currentWidth = () => window.getComputedStyle(tomInput).getPropertyValue('width');
+		const currentWidthRule = sheet.insertRule(`${controlStyleSelector}{width:${currentWidth()};}`, sheet.cssRules.length);
+		window.addEventListener('resize', debounce(() => {
+			sheet.deleteRule(currentWidthRule);
+			sheet.insertRule(`${controlStyleSelector}{width:${currentWidth()};}`, currentWidthRule);
+		}, 50, {leading: false, trailing: true}));
+		const mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
+		mediaQueryList.onchange = () => {
+			sheet.deleteRule(baseStyleRule);
+			sheet.insertRule(`${this.baseSelector}{${baseStyles()}}`, baseStyleRule);
+			sheet.deleteRule(controlStyleRule);
+			sheet.insertRule(`${controlStyleSelector}{${controlStyles()}}`, controlStyleRule);
+			sheet.deleteRule(dropdownStyleRule);
+			sheet.insertRule(`${dropdownStyleSelector}{${controlStyles()}}`, dropdownStyleRule);
+		};
+		this.setupFilters(tomInput);
 		this.tomSelect.on('change', (value: String) => this.validateInput(value));
 	}
 

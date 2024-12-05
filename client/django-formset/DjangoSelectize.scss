@@ -4,9 +4,15 @@
 
 
 .ts-wrapper {
+	--select-color-highlight: rgba(255, 237, 40, 0.4);
+	--selectize-background-color: purple;  // will be changed to current background color
+	--items-border-color: color-mix(in srgb, currentcolor, transparent 66.6%);
+	--selected-items-background-color: light-dark(rgb(134, 183, 254), rgb(13, 28, 198));
+
 	position: relative;
 
 	.ts-control {
+		background-color: var(--selectize-background-color);
 		overflow: hidden;
 		box-sizing: border-box;
 		display: flex;
@@ -19,15 +25,17 @@
 			user-select: auto;
 			box-shadow: none;
 			border: none;
-			padding: 0;
+			background-color: transparent;
+			padding: 3px 0 0 3px;
 			font-size: inherit;
 			font-weight: inherit;
 			font-style: inherit;
 			font-family: inherit;
-			caret-color: $selected-items-border-color;
+			// caret-color: $selected-items-border-color;
 
 			&::placeholder {
 				opacity: 1;
+				background-color: transparent;
 			}
 
 			&::-ms-clear {
@@ -47,21 +55,23 @@
 
 	&.multi {
 		.ts-control {
-			padding: 0 6px 3px 10px;
+			padding: 0 6px 3px 6px;
+
 			> div {
-				border: 1px solid $selected-items-border-color;
+				border: 1px solid var(--items-border-color);
 				border-radius: 3px;
 				margin: 3px 3px 0 0;
+				padding-left: 4px;
 
 				.remove {
 					text-decoration: none;
-					color: $selected-items-border-color;
-					border-left: 1px solid $selected-items-border-color;
+					color: color-mix(in srgb, currentcolor, transparent 25%);
+					border-left: 1px solid var(--items-border-color);
 					padding-left: 2px;
-					margin-left: 2px;
+					margin-left: 4px;
 
 					&:hover {
-						color: inherit;
+						color: currentcolor;
 					}
 				}
 			}
@@ -106,10 +116,10 @@
 		top: 100%;
 		left: 0;
 		width: 100%;
-		z-index: 10;
+		z-index: 2;
 
-		background-color: $select-color-dropdown;
-		backdrop-filter: blur(0.5rem);
+		background-color: color-mix(in srgb, var(--selectize-background-color), transparent 25%);
+		backdrop-filter: blur(1rem);
 		margin: 0.125rem 0 0 0;
 		border-top: 0 none;
 		box-sizing: border-box;
@@ -119,13 +129,13 @@
 			overflow: hidden;
 
 			&[aria-selected="true"] {
-				background-color: $active-items-background-color;
+				background-color: color-mix(in oklab, var(--selectize-background-color), var(--django-formset-fg-color) 10%);
 			}
 			&.selected {
-				background-color: $selected-items-background-color;
+				background-color: var(--selected-items-background-color);
 			}
 			.highlight {
-				background: $select-color-highlight;
+				background: var(--select-color-highlight);
 				border-radius: 1px;
 			}
 		}
