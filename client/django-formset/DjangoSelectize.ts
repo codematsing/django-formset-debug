@@ -4,7 +4,6 @@ import TomSelect from 'tom-select/src/tom-select';
 import {TomSettings} from 'tom-select/src/types/settings';
 import {RecursivePartial, TomOption} from 'tom-select/src/types';
 import TomSelect_remove_button from 'tom-select/src/plugins/remove_button/plugin';
-import template from 'lodash.template';
 import {IncompleteSelect} from './IncompleteSelect';
 import {StyleHelpers} from './helpers';
 import styles from './DjangoSelectize.scss';
@@ -63,18 +62,16 @@ export class DjangoSelectize extends IncompleteSelect {
 			onFocus: this.touch,
 			onBlur: this.blurred,
 			onType: this.inputted,
+			render: {
+				no_results: `<div class="no-results">${gettext("No results found for '${input}'")}</div>`,
+			}
 		};
-		const templ = tomInput.parentElement?.querySelector('template.select-no-results');
-		if (templ) {
-			settings.render = {...settings.render, no_results: (data: TomOption) => template(templ.innerHTML)(data)};
-		}
 		if (this.isIncomplete) {
 			settings.load = this.load;
 		}
 		if (tomInput.hasAttribute('multiple')) {
 			settings.maxItems = parseInt(tomInput.getAttribute('max_items') ?? '3');
-			const translation = tomInput.parentElement?.querySelector('template.selectize-remove-item');
-			settings.plugins = {...settings.plugins, remove_button: {title: translation?.innerHTML ?? "Remove item"}};
+			settings.plugins = {...settings.plugins, remove_button: {title: gettext("Remove item")}};
 			// tom-select has some issues to initialize items using the original input element
 			const scriptId = `${tomInput.getAttribute('id')}_initial`;
 			settings.items = JSON.parse(document.getElementById(scriptId)?.textContent ?? '[]');
