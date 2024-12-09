@@ -12,7 +12,6 @@ select.ts-hidden-accessible {
 
 django-formset {
 	--django-formset-fg-color: light-dark(black, white);
-	--django-formset-bg-color: light-dark(white, black);
 	--django-formset-color-invalid: #{$django-formset-color-invalid};
 	--django-formset-shadow-invalid: #{$django-formset-shadow-invalid};
 	--django-formset-color-valid: #{$django-formset-color-valid};
@@ -22,7 +21,7 @@ django-formset {
 
 	$feedback-input-fields: 'input[type=email]', 'input[type=text]', 'input[type=number]', 'input[type=regex]',
 		'input[type=date]', 'input[type=datetime-local]', 'input[type=url]', 'input[type=password]';
-	$feedback-fields: list.join($feedback-input-fields, (select, textarea));
+	$feedback-fields: list.join($feedback-input-fields, (select:not([is]), textarea:not([is])));
 	$has-feedback: ':not(.dj-exempt-feedback)';
 
 	ul.dj-errorlist {

@@ -15,7 +15,7 @@ import {parse} from '../build/tag-attributes';
 import spinnerIcon from '../icons/spinner.svg';
 import okayIcon from '../icons/okay.svg';
 import bummerIcon from '../icons/bummer.svg';
-import styles from './DjangoFormset.scss';
+import mainStyles from './DjangoFormset.scss';
 
 type FieldElement = HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement;
 type FieldValue = string|Array<string|Object>;
@@ -25,8 +25,32 @@ const COLLECTION_ERRORS = '_collection_errors_';
 const MARKED_FOR_REMOVAL = '_marked_for_removal_';
 
 const style = document.createElement('style');
-style.innerText = styles;
+style.innerText = mainStyles;
 document.head.appendChild(style);
+
+(function setBackgroundColor() {
+	const bodyElement = document.querySelector('body');
+	if (!(bodyElement instanceof HTMLBodyElement && style.sheet))
+		return '';
+	const sheet = style.sheet;
+	const backgroundColor = window.getComputedStyle(bodyElement).getPropertyValue('background-color');
+	let ruleIndex: number;
+	for (ruleIndex = 0; ruleIndex < style.sheet.cssRules.length; ruleIndex++) {
+		const cssRule = style.sheet.cssRules.item(ruleIndex) as CSSStyleRule;
+		if (cssRule.selectorText === 'django-formset')
+			break;
+	}
+	if (ruleIndex === style.sheet.cssRules.length)
+		return;
+
+	const [selector, varName] = ['django-formset', '--django-formset-background-color'];
+	sheet.insertRule(`${selector}{${varName}:${backgroundColor};}`, ruleIndex);
+	window.matchMedia('(prefers-color-scheme: dark)').onchange = () => {
+		const backgroundColor = window.getComputedStyle(bodyElement).getPropertyValue('background-color');
+		sheet.deleteRule(ruleIndex);
+		sheet.insertRule(`${selector}{${varName}:${backgroundColor};}`, ruleIndex);
+	};
+})();
 
 
 function assert(condition: any, message?: string) {
