@@ -1,14 +1,14 @@
 .dj-richtext-wrapper {
-	--richtext-menu-color: color-mix(in srgb, currentcolor 90%, var(--django-formset-bg-color));
+	--richtext-menu-color: color-mix(in srgb, currentcolor, var(--django-formset-background-color) 10%);
 	--richtext-button-opacity: 0.6;
 	--richtext-button-hover-opacity: 1;
-	--richtext-button-active-bgcolor: color-mix(in srgb, currentcolor, var(--django-formset-bg-color) 66%);
-	--richtext-placeholder-color: color-mix(in srgb, currentcolor, var(--django-formset-bg-color) 50%);
-	--richtext-blockquote-color: color-mix(in srgb, currentcolor, var(--django-formset-bg-color) 75%);
-	--richtext-code-block-color: color-mix(in srgb, currentcolor, var(--django-formset-bg-color) 95%);
-	--richtext-output-box-shadow: inset 0 0 5px color-mix(in srgb, currentcolor, var(--django-formset-bg-color) 40%);
+	--richtext-button-active-bgcolor: color-mix(in srgb, currentcolor, var(--django-formset-background-color) 66%);
+	--richtext-placeholder-color: color-mix(in srgb, currentcolor, var(--django-formset-background-color) 50%);
+	--richtext-blockquote-color: color-mix(in srgb, currentcolor, var(--django-formset-background-color) 75%);
+	--richtext-code-block-color: color-mix(in srgb, currentcolor, var(--django-formset-background-color) 95%);
+	--richtext-output-box-shadow: inset 0 0 5px color-mix(in srgb, currentcolor, var(--django-formset-background-color) 40%);
 	--richtext-footnote-color: light-dark(hsl(225 100% 40%), hsl(225 100% 70%));
-	--richtext-tooltip-color: var(--django-formset-bg-color);
+	--richtext-tooltip-color: var(--django-formset-background-color);
 	--richtext-tooltip-background: var(--django-formset-fg-color);
 	--richtext-tooltip-padding-x: 0.5rem;
 	--richtext-tooltip-padding-y: 0.25rem;
@@ -21,9 +21,10 @@
 	align-items: stretch;
 	position: relative;
 	overflow: auto;
+	border-color: var(--richtext-border-color);
 
 	[role="menubar"] {
-		border: none;
+		border-bottom-color: var(--richtext-border-color);
 		flex: 0 1 auto;
 		display: flex;
 		flex-wrap: wrap;
@@ -101,17 +102,15 @@
 					padding: inherit;
 					margin: 0;
 					list-style: none;
-					// background-color: var(--django-formset-bg-color);
-					background-color: inherit;
-					border-color: initial;  // color will be overwritten by transferStyles
-					box-shadow: #808080 0 0 5px;
+					background-color: var(--django-formset-background-color);
+					border-color: var(--richtext-border-color);
+					box-shadow: color-mix(in srgb, currentcolor, transparent 50%) 0 0 5px;
 
 					> li {
 						padding: 0.25rem 0.5rem;
 						background-color: inherit;
 						color: inherit;
 						opacity: var(--richtext-button-opacity);
-						// color: var(--richtext-button-color);
 
 						&:hover {
 							opacity: var(--richtext-button-hover-opacity);

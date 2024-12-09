@@ -136,15 +136,9 @@ abstract class DropdownAction extends Action {
 			this.button.ariaExpanded = expanded ? 'true' : 'false';
 			if (expanded) {
 				const textAreaElement = editor.options.element.nextElementSibling;
-				const computedStyles = window.getComputedStyle(textAreaElement ?? this.button);
-				const style = {
-					backgroundColor: computedStyles.getPropertyValue('background-color'),
-					borderColor: computedStyles.getPropertyValue('border-color'),
-					boxShadow: `${computedStyles.getPropertyValue('border-color')} 0 0 5px`,
-				};
 				computePosition(this.button, this.dropdownMenu, {strategy: 'fixed'}).then(
 					({x, y}) => {
-						Object.assign(this.dropdownMenu!.style, {left: `${x}px`, top: `${y}px`, ...style});
+						Object.assign(this.dropdownMenu!.style, {left: `${x}px`, top: `${y}px`});
 					}
 				);
 			}
@@ -1245,8 +1239,8 @@ class RichtextArea {
 			switch (cssRule.selectorText) {
 				case this.baseSelector:
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
-						'height', 'background-image', 'border', 'border-radius', 'box-shadow', 'outline',
-						'resize',
+						'height', 'background-image', 'border-style', 'border-width', 'border-radius', 'box-shadow',
+						'outline', 'resize',
 					]);
 					extraStyles = extraStyles.concat(`min-height:${buttonGroupHeight * 2}px;`);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
@@ -1279,7 +1273,7 @@ class RichtextArea {
 					break;
 				case `${this.baseSelector} [role="menubar"]`:
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
-						'border-bottom'
+						'border-bottom-style', 'border-bottom-width',
 					]);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
@@ -1300,6 +1294,20 @@ class RichtextArea {
 		}
 		if (!loaded)
 			throw new Error(`Could not load styles for ${this.baseSelector}`);
+
+		// border color may change during runtime
+		const borderColor = () => {
+			const transition = this.textAreaElement.style.transition;
+			this.textAreaElement.style.transition = 'none';
+			const borderColor = window.getComputedStyle(this.textAreaElement).getPropertyValue('border-color');
+			this.textAreaElement.style.transition = transition;
+			return borderColor;
+		};
+		const borderColorRule = sheet.insertRule(`${this.baseSelector}{--richtext-border-color: ${borderColor()}}`);
+		window.matchMedia('(prefers-color-scheme: dark)').onchange = () => {
+			sheet.deleteRule(borderColorRule);
+			sheet.insertRule(`${this.baseSelector}{--richtext-border-color: ${borderColor()}}`, borderColorRule);
+		};
 	}
 
 	public disconnect() {
