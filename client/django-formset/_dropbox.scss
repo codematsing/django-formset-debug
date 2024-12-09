@@ -4,7 +4,7 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: space-between;
-		background-color: whitesmoke;
+		background-color: color-mix(in srgb, var(--django-formset-background-color), currentcolor 5%);
 		margin: 0 0 0.25rem 0.25rem;
 		padding: 0;
 		list-style: none;
