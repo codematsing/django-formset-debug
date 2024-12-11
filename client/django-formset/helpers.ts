@@ -1,4 +1,7 @@
 export namespace StyleHelpers {
+	const styleElement = document.createElement('style');
+	let pseudoStyleSheet: CSSStyleSheet|null = null;
+
 	export function extractStyles(element: Element, properties: Array<string>): string {
 		let styles = Array<string>();
 		const style = window.getComputedStyle(element);
@@ -8,22 +11,23 @@ export namespace StyleHelpers {
 		return styles.join('; ').concat('; ');
 	}
 
-	export function convertPseudoClasses() : HTMLStyleElement {
+
+	function convertPseudoClasses() {
 		// Iterate over all style sheets, find most pseudo classes and add CSSRules with a
 		// CSS selector where the pseudo class has been replaced by a real counterpart.
 		// This is required, because browsers can not invoke `window.getComputedStyle(element)`
 		// using pseudo classes.
-		// With function `removeConvertedClasses()` the added CSSRules are removed again.
+		if (!pseudoStyleSheet)
+			throw new Error('Style Sheet is not initialized');
+
 		const numStyleSheets = document.styleSheets.length;
-		const styleElement = document.createElement('style');
-		document.head.appendChild(styleElement);
 		for (let index = 0; index < numStyleSheets; index++) {
 			const sheet = document.styleSheets[index];
 			try {
 				for (let k = 0; k < sheet.cssRules.length; k++) {
 					const cssRule = sheet.cssRules.item(k);
 					if (cssRule) {
-						traverseStyles(cssRule, styleElement.sheet as CSSStyleSheet);
+						traverseStyles(cssRule, pseudoStyleSheet);
 					}
 				}
 			} catch (e) {
@@ -34,7 +38,28 @@ export namespace StyleHelpers {
 				}
 			}
 		}
-		return styleElement;
+	}
+
+	export function attachPseudoStyles() {
+		document.head.appendChild(styleElement);
+		if (pseudoStyleSheet === null) {
+			pseudoStyleSheet = styleElement.sheet as CSSStyleSheet;
+			convertPseudoClasses();
+		} else {
+			while (styleElement.sheet?.cssRules.length) {
+				styleElement.sheet?.deleteRule(0);
+			}
+			for (let index = 0; index < pseudoStyleSheet.cssRules.length; index++) {
+				const cssText = pseudoStyleSheet.cssRules.item(index)?.cssText;
+				if (cssText) {
+					styleElement.sheet?.insertRule(cssText);
+				}
+			}
+		}
+	}
+
+	export function detachPseudoStyles() {
+		document.head.removeChild(styleElement);
 	}
 
 	export function stylesAreInstalled(baseSelector: string) : boolean {

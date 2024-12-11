@@ -15,9 +15,9 @@ import {DateFieldElement, DatePickerElement, DateTimeFieldElement, DateTimePicke
 
 
 window.addEventListener('DOMContentLoaded', (event) => {
-	const pseudoStylesElement = StyleHelpers.convertPseudoClasses();
 	const customElementNames = Array<string>();
 	const promises = Array<Promise<any>>();
+	StyleHelpers.attachPseudoStyles();
 
 	window.customElements.define('django-selectize', DjangoSelectizeElement, {extends: 'select'});
 	customElementNames.push('django-selectize');
@@ -79,7 +79,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 	Promise.all(promises).then(() => {
 		window.customElements.define('django-formset', DjangoFormsetElement);
 		window.customElements.whenDefined('django-formset').then(() => {
-			pseudoStylesElement.remove();
+			StyleHelpers.detachPseudoStyles();
 		});
 	}).catch(error => console.error(`Failed to initialize django-formset: ${error}`));
 });

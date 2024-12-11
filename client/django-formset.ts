@@ -4,8 +4,8 @@ import {StyleHelpers} from './django-formset/helpers';
 
 
 window.addEventListener('DOMContentLoaded', (event) => {
-	const pseudoStylesElement = StyleHelpers.convertPseudoClasses();
 	const promises = Array<Promise<void>>();
+	StyleHelpers.attachPseudoStyles();
 
 	function defineComponent(resolve: Function, selector: string, newComponent: CustomElementConstructor, options: ElementDefinitionOptions|undefined=undefined) {
 		window.customElements.whenDefined(selector).then(() => resolve());
@@ -183,7 +183,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 	Promise.all(promises).then(() => {
 		window.customElements.define('django-formset', DjangoFormsetElement);
 		window.customElements.whenDefined('django-formset').then(() => {
-			pseudoStylesElement.remove();
+			StyleHelpers.detachPseudoStyles();
 		});
 	}).catch(error => console.error(`Failed to initialize django-formset: ${error}`));
 });
