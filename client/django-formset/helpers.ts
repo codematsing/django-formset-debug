@@ -11,6 +11,28 @@ export namespace StyleHelpers {
 		return styles.join('; ').concat('; ');
 	}
 
+	export function mutableStyles(sheet: CSSStyleSheet, selector: string, properties: {[key: string]: string}, element: HTMLElement, extraCssClass?: string) : Function {
+		const setStyles = () => {
+			const transition = window.getComputedStyle(element).getPropertyValue('transition');
+			element.style.transition = 'none';
+			if (extraCssClass) {
+				element.classList.add(extraCssClass);
+			}
+			const style = Object.entries(properties).map(([property, value]) => {
+				return `${value}:${window.getComputedStyle(element).getPropertyValue(property)};`;
+			}).join('');
+			if (extraCssClass) {
+				element.classList.remove(extraCssClass);
+			}
+			element.style.transition = transition;
+			return style;
+		};
+		const ruleIndex = sheet.insertRule(`${selector}{${setStyles()}}`, sheet.cssRules.length);
+		return () => {
+			sheet.deleteRule(ruleIndex);
+			sheet.insertRule(`${selector}{${setStyles()}}`, ruleIndex);
+		};
+	}
 
 	function convertPseudoClasses() {
 		// Iterate over all style sheets, find most pseudo classes and add CSSRules with a

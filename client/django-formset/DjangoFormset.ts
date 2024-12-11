@@ -8,6 +8,7 @@ import isString from 'lodash.isstring';
 import setDataValue from 'lodash.set';
 import template from 'lodash.template';
 import Sortable, {SortableEvent} from 'sortablejs';
+import {StyleHelpers} from './helpers';
 import {FileUploadWidget} from './FileUploadWidget';
 import {FormDialog} from './FormDialog';
 import {ErrorKey, FieldErrorMessages} from './Widget';
@@ -28,29 +29,12 @@ const style = document.createElement('style');
 style.innerText = mainStyles;
 document.head.appendChild(style);
 
-(function setBackgroundColor() {
-	const bodyElement = document.querySelector('body');
-	if (!(bodyElement instanceof HTMLBodyElement && style.sheet))
-		return '';
-	const sheet = style.sheet;
-	const backgroundColor = window.getComputedStyle(bodyElement).getPropertyValue('background-color');
-	let ruleIndex: number;
-	for (ruleIndex = 0; ruleIndex < style.sheet.cssRules.length; ruleIndex++) {
-		const cssRule = style.sheet.cssRules.item(ruleIndex) as CSSStyleRule;
-		if (cssRule.selectorText === 'django-formset')
-			break;
-	}
-	if (ruleIndex === style.sheet.cssRules.length)
-		return;
-
-	const [selector, varName] = ['django-formset', '--django-formset-background-color'];
-	sheet.insertRule(`${selector}{${varName}:${backgroundColor};}`, ruleIndex);
-	window.matchMedia('(prefers-color-scheme: dark)').onchange = () => {
-		const backgroundColor = window.getComputedStyle(bodyElement).getPropertyValue('background-color');
-		sheet.deleteRule(ruleIndex);
-		sheet.insertRule(`${selector}{${varName}:${backgroundColor};}`, ruleIndex);
-	};
-})();
+if (style.sheet instanceof CSSStyleSheet) {
+	const mediaQueryStyle = StyleHelpers.mutableStyles(style.sheet, 'django-formset', {
+		'background-color': '--django-formset-background-color'
+	}, document.body);
+	window.matchMedia('(prefers-color-scheme: dark)').onchange = () => mediaQueryStyle();
+}
 
 
 function assert(condition: any, message?: string) {
