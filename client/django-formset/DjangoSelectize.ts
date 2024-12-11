@@ -194,24 +194,19 @@ export class DjangoSelectize extends IncompleteSelect {
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight',
 						'letter-spacing', 'white-space'
-					]);
+					]).concat(
+						`--border-style: ${window.getComputedStyle(tomInput).getPropertyValue('border-style')};`,
+						`--border-width: ${window.getComputedStyle(tomInput).getPropertyValue('border-width')};`,
+						`--border-radius: ${window.getComputedStyle(tomInput).getPropertyValue('border-radius')};`
+					);
 					loaded = true;
 					break;
 				case `${this.baseSelector} .ts-control`:
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
-						'border-width', 'border-style', 'border-radius', 'padding', 'transition'
+						'padding', 'transition'
 					]).concat(
 						`min-height: ${DjangoSelectize.nativeStyles['height']};`
 					);
-					break;
-				case `${this.baseSelector}.focus .ts-control`:
-					tomInput.style.transition = 'none';
-					tomInput.classList.add('-focus-');
-					extraStyles = StyleHelpers.extractStyles(tomInput, [
-						'border-color', 'box-shadow','outline', 'transition'
-					]);
-					tomInput.classList.remove('-focus-');
-					tomInput.style.transition = '';
 					break;
 				case `${this.baseSelector} .ts-control > input`:
 				case `${this.baseSelector} .ts-control > div`:
@@ -219,25 +214,8 @@ export class DjangoSelectize extends IncompleteSelect {
 						extraStyles = StyleHelpers.extractStyles(optionElement, ['padding-left', 'padding-right']);
 					}
 					break;
-				case `${this.baseSelector} .ts-control > input::placeholder`:
-					tomInput.classList.add('-placeholder-');
-					extraStyles = StyleHelpers.extractStyles(tomInput, ['background-color', 'color']);
-					tomInput.classList.remove('-placeholder-');
-					break;
-				case `${this.baseSelector}.disabled .ts-control`:
-					tomInput.classList.add('-disabled-');
-					extraStyles = StyleHelpers.extractStyles(tomInput, [
-						'background-color', 'border', 'box-shadow', 'color', 'opacity', 'outline', 'transition'
-					]);
-					tomInput.classList.remove('-disabled-');
-					break;
 				case `${this.baseSelector} .ts-dropdown`:
-					extraStyles = StyleHelpers.extractStyles(tomInput, [
-						'border-right', 'border-bottom', 'border-left',
-						'border-bottom-left-radius', 'border-bottom-right-radius',
-					]).concat(
-						parseFloat(lineHeight) > 0 ? `line-height: calc(${lineHeight} * 1.2);` : 'line-height: 1.4em;'
-					);
+					extraStyles = parseFloat(lineHeight) > 0 ? `line-height: calc(${lineHeight} * 1.2);` : 'line-height: 1.4em;';
 					break;
 				case `${this.baseSelector} .ts-dropdown .ts-dropdown-content`:
 					if (parseFloat(lineHeight) > 0) {
@@ -253,7 +231,7 @@ export class DjangoSelectize extends IncompleteSelect {
 					tomInput.style.transition = 'none';
 					tomInput.classList.add('-focus-', '-invalid-', 'is-invalid');  // is-invalid is a Bootstrap hack
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
-						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition'
+						'background-color', 'border-color', 'box-shadow', 'color', 'outline', 'transition'
 					]);
 					tomInput.classList.remove('-focus-', '-invalid-', 'is-invalid');
 					tomInput.style.transition = '';
@@ -271,9 +249,9 @@ export class DjangoSelectize extends IncompleteSelect {
 
 	private appendIndividualStyleSheet() {
 		// `:host-context()` does not work with `:has()` or other complex selectors. Therefore, it is impossible to
-		// use it as a selector for the shadow root of this individual component. To apply styles to this shadow root's
+		// use it as a selector for the shadow-root of this individual component. To apply styles to this shadow-root's
 		// instance, depending on context of the host element, we use a unique CSS class. This class is added during
-		// initialization to the wrapping element of the shadow root, see `wrapInShadowRoot()`.
+		// initialization to the wrapping element of the shadow-root, see `wrapInShadowRoot()`.
 		// Here we replace the `:host-context()`-selectors with that individual class.
 		const sheet = DjangoSelectize.styleSheet;
 		const individualSheet = new CSSStyleSheet();
@@ -293,42 +271,50 @@ export class DjangoSelectize extends IncompleteSelect {
 	}
 
 	public initialize() {
+		// this function is called whenever an instance of <django-selectize> is added to the DOM
 		const sheet = this.shadowRoot.adoptedStyleSheets[0];
 		if (!DjangoSelectize.styleSheet)
 			throw new Error('Stylesheet not loaded');
+
+		// transfer static styles to the <style> element in the shadow root
 		for (let index = 0; index < DjangoSelectize.styleSheet.cssRules.length; index++) {
 			const cssRule = DjangoSelectize.styleSheet.cssRules.item(index) as CSSStyleRule;
 			sheet.insertRule(cssRule.cssText);
 		}
 
-		// some styles might change during runtime, so we need to update them whenever necessary
 		const tomInput = this.tomSelect.input as HTMLSelectElement;
-		tomInput.style.transition = 'none';
-		const baseStyles = () => {
-			const backgroundColor = window.getComputedStyle(tomInput).getPropertyValue('background-color');
-			return `--selectize-background-color:${backgroundColor};${StyleHelpers.extractStyles(tomInput, ['color'])};`;
+
+		// some styles change when switching light/dark mode, so we need to update them
+		const mediaQueryStyles = [
+			StyleHelpers.mutableStyles(sheet, this.baseSelector, {
+				'border-color': '--border-color',
+				'color': 'color',
+			}, tomInput),
+			StyleHelpers.mutableStyles(sheet, `${this.baseSelector}.focus .ts-control`, {
+				'box-shadow': 'box-shadow',
+				'border-color': 'border-color',
+				'outline': 'outline',
+			}, tomInput, '-focus-'),
+			StyleHelpers.mutableStyles(sheet, `${this.baseSelector}.disabled .ts-control`, {
+				'background-color': 'background-color',
+				'border-color': 'border-color',
+				'color': 'color',
+				'outline': 'outline',
+			}, tomInput, '-disabled-'),
+		];
+		window.matchMedia('(prefers-color-scheme: dark)').onchange = () => {
+			StyleHelpers.attachPseudoStyles();
+			mediaQueryStyles.forEach(style => style());
+			StyleHelpers.detachPseudoStyles();
 		};
-		const baseStyleRule = sheet.insertRule(`${this.baseSelector}{${baseStyles()}}`, sheet.cssRules.length);
-		const controlStyleSelector = `${this.baseSelector} .ts-control`;
-		const controlStyles = () => StyleHelpers.extractStyles(tomInput, ['border-color', 'box-shadow']);
-		const controlStyleRule = sheet.insertRule(`${controlStyleSelector}{${controlStyles()}}`, sheet.cssRules.length);
-		const dropdownStyleSelector = `${this.baseSelector} .ts-dropdown`;
-		const dropdownStyleRule = sheet.insertRule(`${dropdownStyleSelector}{${controlStyles()}}`, sheet.cssRules.length);
-		const currentWidth = () => window.getComputedStyle(tomInput).getPropertyValue('width');
-		const currentWidthRule = sheet.insertRule(`${controlStyleSelector}{width:${currentWidth()};}`, sheet.cssRules.length);
+
+		// the width of the control element must be updated when the window is resized
+		const widthStyles = StyleHelpers.mutableStyles(sheet, `${this.baseSelector} .ts-control`, {
+			'width': 'width',
+		}, tomInput);
 		window.addEventListener('resize', debounce(() => {
-			sheet.deleteRule(currentWidthRule);
-			sheet.insertRule(`${controlStyleSelector}{width:${currentWidth()};}`, currentWidthRule);
+			widthStyles();
 		}, 50, {leading: false, trailing: true}));
-		const mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
-		mediaQueryList.onchange = () => {
-			sheet.deleteRule(baseStyleRule);
-			sheet.insertRule(`${this.baseSelector}{${baseStyles()}}`, baseStyleRule);
-			sheet.deleteRule(controlStyleRule);
-			sheet.insertRule(`${controlStyleSelector}{${controlStyles()}}`, controlStyleRule);
-			sheet.deleteRule(dropdownStyleRule);
-			sheet.insertRule(`${dropdownStyleSelector}{${controlStyles()}}`, dropdownStyleRule);
-		};
 		this.setupFilters(tomInput);
 		this.tomSelect.on('change', (value: String) => this.validateInput(value));
 	}

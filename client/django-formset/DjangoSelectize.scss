@@ -5,14 +5,14 @@
 
 .ts-wrapper {
 	--select-color-highlight: rgba(255, 237, 40, 0.4);
-	--selectize-background-color: purple;  // will be changed to current background color
-	--items-border-color: color-mix(in srgb, currentcolor, transparent 66.6%);
 	--selected-items-background-color: light-dark(rgb(134, 183, 254), rgb(13, 28, 198));
 
 	position: relative;
 
 	.ts-control {
-		background-color: var(--selectize-background-color);
+		background-color: var(--django-formset-background-color);
+		border: var(--border-width) var(--border-style) var(--border-color);
+		border-radius: var(--border-radius);
 		overflow: hidden;
 		box-sizing: border-box;
 		display: flex;
@@ -31,7 +31,6 @@
 			font-weight: inherit;
 			font-style: inherit;
 			font-family: inherit;
-			// caret-color: $selected-items-border-color;
 
 			&::placeholder {
 				opacity: 1;
@@ -58,7 +57,7 @@
 			padding: 0 6px 3px 6px;
 
 			> div {
-				border: 1px solid var(--items-border-color);
+				border: 1px solid color-mix(in srgb, var(--border-color), currentcolor 15%);
 				border-radius: 3px;
 				margin: 3px 3px 0 0;
 				padding-left: 4px;
@@ -66,7 +65,7 @@
 				.remove {
 					text-decoration: none;
 					color: color-mix(in srgb, currentcolor, transparent 25%);
-					border-left: 1px solid var(--items-border-color);
+					border-left: 1px solid color-mix(in srgb, var(--border-color), currentcolor 15%);
 					padding-left: 2px;
 					margin-left: 4px;
 
@@ -89,7 +88,7 @@
 	}
 
 	&.focus .ts-control {
-		--dummy-style: none;  // required by DjangoSelectize.transferStyles()
+		--dummy-style: none;  // required by DjangoSelectize.initialize()
 	}
 
 	&.disabled .ts-control {
@@ -114,14 +113,19 @@
 	.ts-dropdown {
 		position: absolute;
 		top: 100%;
-		left: 0;
-		width: 100%;
+		left: var(--border-radius);
+		right: var(--border-radius);
 		z-index: 2;
 
-		background-color: color-mix(in srgb, var(--selectize-background-color), transparent 25%);
+		background-color: color-mix(in srgb, var(--django-formset-background-color), transparent 25%);
 		backdrop-filter: blur(1rem);
 		margin: 0.125rem 0 0 0;
-		border-top: 0 none;
+		border-top: none;
+		border-right: var(--border-width) var(--border-style) var(--border-color);
+		border-bottom: var(--border-width) var(--border-style) var(--border-color);
+		border-left: var(--border-width) var(--border-style) var(--border-color);
+		border-bottom-left-radius: var(--border-radius);
+		border-bottom-right-radius: var(--border-radius);
 		box-sizing: border-box;
 
 		[data-selectable] {
@@ -129,7 +133,7 @@
 			overflow: hidden;
 
 			&[aria-selected="true"] {
-				background-color: color-mix(in oklab, var(--selectize-background-color), var(--django-formset-fg-color) 10%);
+				background-color: color-mix(in oklab, var(--django-formset-background-color), var(--django-formset-fg-color) 10%);
 			}
 			&.selected {
 				background-color: var(--selected-items-background-color);
