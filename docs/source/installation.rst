@@ -135,9 +135,9 @@ functionality of this project is prepared to be loaded. This means that whenever
 first "seen" by the **django-formset** runtime, the corresponding JavaScript file is loaded
 dynamically. This is done to keep the initial load time of the page as short as possible. However,
 if you want to include all the JavaScript files at once, then you can do so by including the
-monolithic build named ``formset/js/django-formset.monolithic.js``.
+monolithic build named ``formset/js/django-formset.monolith.js``.
 
-An alternative approach is to copy the file ``django-formset/client/django-formset.monolithic.ts``
+An alternative approach is to copy the file ``django-formset/client/django-formset.monolith.ts``
 to your own implementation and remove the parts which are not required. Then compile and bundle this
 file into your own JavaScript file. This way, you can create your own customized implementation of
 the client-side part of this **django-formset**.
