@@ -979,7 +979,7 @@ class RichtextArea {
 					// innerHTML must reflect the content, otherwise field validation complains about a missing value
 					this.textAreaElement.innerHTML = this.editor.getHTML();
 				}
-				this.contentUpdate();
+				this.updateCharCounter();
 				this.installEventHandlers();
 				this.attributesObserver.observe(this.textAreaElement, {attributes: true});
 				if (this.menubarElement) {
@@ -1085,7 +1085,6 @@ class RichtextArea {
 		this.editor.on('focus', this.focused);
 		this.editor.on('update', this.updated);
 		this.editor.on('blur', this.blurred);
-		this.editor.on('update', this.contentUpdate);
 		this.editor.on('selectionUpdate', this.selectionUpdate);
 		const form = this.textAreaElement.form;
 		form!.addEventListener('reset', this.formResetted);
@@ -1104,6 +1103,7 @@ class RichtextArea {
 
 	private updated = () => {
 		this.textAreaElement.innerHTML = this.editor.getHTML();
+		this.updateCharCounter();
 		this.textAreaElement.dispatchEvent(new Event('input'));
 	};
 
@@ -1120,7 +1120,7 @@ class RichtextArea {
 		this.textAreaElement.dispatchEvent(new Event('blur'));
 	};
 
-	private contentUpdate = () => {
+	private updateCharCounter = () => {
 		if (this.charaterCountDiv && this.characterCountTemplate) {
 			const context = {count: this.editor.storage.characterCount.characters()};
 			this.charaterCountDiv.innerHTML = this.characterCountTemplate(context);
