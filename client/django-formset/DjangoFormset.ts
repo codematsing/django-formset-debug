@@ -403,7 +403,7 @@ class FieldGroup {
 				// input fields converted to web components may additionally validate themselves
 				element.checkValidity();
 			}
-			if (!element.validity.valid)
+			if (!element?.validity.valid)
 				break;
 		}
 		if (element && !element.validity.valid) {
@@ -2151,7 +2151,7 @@ export class DjangoFormset {
 					headers: headers,
 					body: JSON.stringify(body),
 					signal: this.abortController.signal,
-				});
+				} as RequestInit);
 				switch (response.status) {
 					case 200:
 						this.clearErrors();
