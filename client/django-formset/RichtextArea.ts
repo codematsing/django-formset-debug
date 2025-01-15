@@ -1094,7 +1094,6 @@ class RichtextArea {
 	}
 
 	private concealTextArea(wrapperElement: HTMLElement) {
-		wrapperElement.insertAdjacentElement('afterend', this.textAreaElement);
 		this.textAreaElement.classList.add('dj-concealed');
 	}
 
@@ -1260,8 +1259,8 @@ export class RichTextAreaElement extends HTMLTextAreaElement {
 
 	constructor() {
 		super();
-		const wrapperElement = this.closest('.dj-richtext-wrapper');
-		if (!(wrapperElement instanceof HTMLElement))
+		const wrapperElement = this.previousElementSibling;
+		if (!(wrapperElement instanceof HTMLElement && wrapperElement.classList.contains('dj-richtext-wrapper')))
 			throw new Error(`${this} must be a child of '<ANY class="dj-richtext-wrapper">' element.`);
 		this[RA] = new RichtextArea(wrapperElement, this);
 	}
