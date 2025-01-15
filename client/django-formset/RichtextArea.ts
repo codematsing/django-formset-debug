@@ -1255,6 +1255,7 @@ class RichtextArea {
 const RA = Symbol('RichtextArea');
 
 export class RichTextAreaElement extends HTMLTextAreaElement {
+	isInitialized = false;
 	private [RA]: RichtextArea;  // hides internal implementation
 
 	constructor() {
@@ -1267,7 +1268,8 @@ export class RichTextAreaElement extends HTMLTextAreaElement {
 
 	connectedCallback() {
 		this[RA].initializedPromise.then(() => {
-			this.dispatchEvent(new Event('connected', {bubbles: true}));
+			this.isInitialized = true;
+			this.dispatchEvent(new CustomEvent('initialized'));
 		});
 	}
 
