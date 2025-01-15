@@ -1,5 +1,9 @@
 ## Changes
 
+1.5.6
+  * Fix: In `RichtextArea`, wait until the web component is completely initialized before validating
+    its content.
+
 1.5.5
   * Fix: Regression in `FileUploadWidget`, drag and drop of file into drag area does not work.
 
