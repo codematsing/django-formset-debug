@@ -653,7 +653,14 @@ namespace controls {
 		protected toggleItem(event: MouseEvent, editor: Editor) {
 			let element = event.target instanceof Element ? event.target : null;
 			while (element) {
-				if (element.role === 'menuitem') {
+				if (this.dropdownItems.length === 0) {
+					if (element === this.button) {
+						const level = this.extractLevel(element);
+						editor.chain().focus().setHeading({level: level}).run();
+						this.activate(editor);
+						break;
+					}
+				} else if (element.role === 'menuitem') {
 					const level = this.extractLevel(element);
 					editor.chain().focus().setHeading({level: level}).run();
 					this.activate(editor);
@@ -1046,7 +1053,7 @@ class RichtextArea {
 					// innerHTML must reflect the content, otherwise field validation complains about a missing value
 					this.textAreaElement.innerHTML = this.editor.getHTML();
 				}
-				this.contentUpdate();
+				this.updateCharCounter();
 				this.installEventHandlers();
 				this.attributesObserver.observe(this.textAreaElement, {attributes: true});
 				if (this.menubarElement) {
@@ -1152,7 +1159,6 @@ class RichtextArea {
 		this.editor.on('focus', this.focused);
 		this.editor.on('update', this.updated);
 		this.editor.on('blur', this.blurred);
-		this.editor.on('update', this.contentUpdate);
 		this.editor.on('selectionUpdate', this.selectionUpdate);
 		const form = this.textAreaElement.form;
 		form!.addEventListener('reset', this.formResetted);
@@ -1161,7 +1167,6 @@ class RichtextArea {
 	}
 
 	private concealTextArea(wrapperElement: HTMLElement) {
-		wrapperElement.insertAdjacentElement('afterend', this.textAreaElement);
 		this.textAreaElement.classList.add('dj-concealed');
 	}
 
@@ -1172,6 +1177,7 @@ class RichtextArea {
 
 	private updated = () => {
 		this.textAreaElement.innerHTML = this.editor.getHTML();
+		this.updateCharCounter();
 		this.textAreaElement.dispatchEvent(new Event('input'));
 	};
 
@@ -1188,7 +1194,7 @@ class RichtextArea {
 		this.textAreaElement.dispatchEvent(new Event('blur'));
 	};
 
-	private contentUpdate = () => {
+	private updateCharCounter = () => {
 		if (this.charaterCountDiv && this.characterCountTemplate) {
 			const context = {count: this.editor.storage.characterCount.characters()};
 			this.charaterCountDiv.innerHTML = this.characterCountTemplate(context);
@@ -1325,19 +1331,21 @@ class RichtextArea {
 const RA = Symbol('RichtextArea');
 
 export class RichTextAreaElement extends HTMLTextAreaElement {
+	isInitialized = false;
 	private [RA]: RichtextArea;  // hides internal implementation
 
 	constructor() {
 		super();
-		const wrapperElement = this.closest('.dj-richtext-wrapper');
-		if (!(wrapperElement instanceof HTMLElement))
+		const wrapperElement = this.previousElementSibling;
+		if (!(wrapperElement instanceof HTMLElement && wrapperElement.classList.contains('dj-richtext-wrapper')))
 			throw new Error(`${this} must be a child of '<ANY class="dj-richtext-wrapper">' element.`);
 		this[RA] = new RichtextArea(wrapperElement, this);
 	}
 
 	connectedCallback() {
 		this[RA].initializedPromise.then(() => {
-			this.dispatchEvent(new Event('connected', {bubbles: true}));
+			this.isInitialized = true;
+			this.dispatchEvent(new CustomEvent('initialized'));
 		});
 	}
 

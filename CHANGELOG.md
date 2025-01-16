@@ -1,6 +1,7 @@
 ## Changes
 
 - 1.6
+  * Main feature of this release: Full support for dark mode.
   * Always apply 6 rows to the calendar widget to prevent resizing when paginating.
   * To ``RichtextArea`` widget, add control elements to select font family, font size and line
     spacing.
@@ -13,6 +14,19 @@
   * RichtextArea widget: Add classbased Node- and Mark control-elements.
   * Add support for Django-5.1.
   * The build target has been renamed from `esbuild` to `esbuild.modular`.
+
+- 1.5.6
+  * Fix: In `RichtextArea`, wait until the web component is completely initialized before validating
+    its content.
+
+- 1.5.5
+  * Fix: Regression in `FileUploadWidget`, drag and drop of file into drag area does not work.
+
+- 1.5.4
+  * yanked
+
+- 1.5.3
+  * Fix: Regression in `RichtextArea`, heading with a single level does not work.
 
 - 1.5.2
   * Fix naming issue in interactive docs, preventing the dialog not to close.
