@@ -489,7 +489,7 @@ class DateTextbox(DateTimeBaseInput):
 
 
 class DateCalendar(CalendarRendererMixin, DateTimeBaseInput):
-    template_name = 'formset/default/widgets/datetime.html'
+    template_name = 'formset/default/widgets/calendar.html'
     interval = timedelta(days=1)
 
     def __init__(self, attrs=None, calendar_renderer=None):
