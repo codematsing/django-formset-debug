@@ -55,6 +55,7 @@ export class CalendarSheet extends Widget {
 	private minYearDate?: Date;
 	private maxYearDate?: Date;
 	private readonly baseSelector = '.dj-calendar';
+	private readonly styleSheet: CSSStyleSheet;
 	private readonly rangeSelectCssRule: CSSStyleRule;
 	private readonly rangeSelectorText: string;
 
@@ -71,9 +72,7 @@ export class CalendarSheet extends Widget {
 		observer.observe(this.element, {childList: true});
 		this.setInterval();
 		this.setMinMaxBounds();
-		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
-			this.transferStyles();
-		}
+		this.styleSheet = StyleHelpers.stylesAreInstalled(this.baseSelector) ?? this.transferStyles();
 		this.rangeSelectCssRule = this.getRangeSelectCssRule();
 		this.rangeSelectorText = this.rangeSelectCssRule.selectorText;
 		this.registerCalendar();
@@ -824,7 +823,7 @@ export class CalendarSheet extends Widget {
 		return [lower, upper];
 	}
 
-	private transferStyles() {
+	private transferStyles() : CSSStyleSheet {
 		const declaredStyles = document.createElement('style');
 		declaredStyles.innerText = styles;
 		document.head.appendChild(declaredStyles);
@@ -841,9 +840,13 @@ export class CalendarSheet extends Widget {
 			switch (cssRule.selectorText) {
 				case this.baseSelector:
 					extraStyles = StyleHelpers.extractStyles(inputElement, [
-						'background-color', 'border', 'border-radius',
 						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight',
-						'letter-spacing', 'white-space', 'line-height']);
+						'letter-spacing', 'white-space', 'line-height'
+					]).concat(StyleHelpers.extractStyles(inputElement, {
+						'--border-style': 'border-style',
+						'--border-width': 'border-width',
+						'--border-radius': 'border-radius',
+					}));
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					loaded = true;
 					break;
@@ -855,27 +858,23 @@ export class CalendarSheet extends Widget {
 					extraStyles = StyleHelpers.extractStyles(inputElement, ['padding']);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case `${this.baseSelector} .sheet-body ul.hours > li.constricted`:
-				case `${this.baseSelector} .sheet-body ul.hours > li:has(~ li.constricted)`:
-				case `${this.baseSelector} .sheet-body ul.hours > li.constricted ~ li`:
-				case `${this.baseSelector} .sheet-body ul.minutes`:
-					inputElement.classList.add('-focus-');
-					extraStyles = StyleHelpers.extractStyles(inputElement, ['border-color']);
-					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
-					inputElement.classList.remove('-focus-');
-					if (cssRule.selectorText === `${this.baseSelector} .sheet-body ul.hours > li.constricted`) {
-						extraStyles = StyleHelpers.extractStyles(this.element, ['background-color']);
-						extraStyles = extraStyles.replace('background-color', 'border-bottom-color');
-						sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
-					}
-					break;
 				default:
 					break;
 			}
 		}
 		inputElement.style.transition = '';
+		StyleHelpers.pushMediaQueryStyles([[
+			sheet,
+			this.baseSelector,
+			{
+				'--border-color': 'border-color',
+				'--outline': 'outline',
+			},
+			inputElement,
+		]]);
 		if (!loaded)
 			throw new Error(`Could not load styles for ${this.baseSelector}`);
+		return sheet;
 	}
 
 	private getRangeSelectCssRule() : CSSStyleRule {

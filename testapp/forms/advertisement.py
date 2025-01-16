@@ -169,6 +169,7 @@ class AdvertisementForm(forms.Form):
                 controls.FontSize(font_size_classes),
                 controls.LineHeight(line_height_classes),
                 MarginBottom(margin_bottom_classes),
+                controls.Separator(),
                 controls.TextIndent(),
                 controls.TextIndent('outdent'),
                 controls.TextMargin('increase'),

@@ -7,6 +7,8 @@
 	+ [role="textbox"] {
 		display: flex;
 		justify-content: flex-start;
+		border: var(--border-width) var(--border-style) var(--border-color);
+		border-radius: var(--border-radius);
 
 		&.focus {
 			--dummy-style: none; // required by PhoneNumberField.transferStyles()
@@ -26,7 +28,7 @@
 				margin-right: 12px;
 				border-style: solid;
 				border-width: 5px 5px 0 5px;
-				border-color: black transparent transparent transparent;
+				border-color: currentColor transparent transparent transparent;
 			}
 
 			span {
@@ -49,15 +51,21 @@
 			+ [role="dialog"] {
 				display: flex;
 				flex-direction: column;
-				box-shadow: lightgray 0 0 1rem;
+				background-color: var(--django-formset-background-color);
+				border: var(--border-width) var(--border-style) var(--border-color);
+				border-radius: var(--border-radius);
+				box-shadow: var(--border-color) 0 0 1rem;
 				position: absolute;
 				top: 0;
 				left: 0;
-				background-color: $select-color-dropdown;
 
 				input[type="search"] {
 					width: 100%;
 					margin: 3px 0;
+					color: inherit;
+					background-color: inherit;
+					border: var(--border-width) var(--border-style) var(--border-color);
+					border-radius: var(--border-radius);
 
 					&:focus {
 						--dummy-style: none; // required by PhoneNumberField.transferStyles()
@@ -74,11 +82,11 @@
 						padding: 0.25rem;
 						cursor: pointer;
 						&:hover {
-							background-color: $active-items-background-color;
+							background-color: $active-item-background-color;
 						}
 						&.selected {
-							background-color: $selected-items-background-color;
-							border: 1px solid $selected-items-border-color;
+							background-color: $selected-item-background-color;
+							border: 1px solid $selected-item-border-color;
 						}
 						span {
 							margin-right: 0.5rem;

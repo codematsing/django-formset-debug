@@ -55,7 +55,7 @@ def test_daterange_initial(page, mocker, viewname):
     background_color = calendar.locator('li[data-date="2023-08-07"]').evaluate('elem => window.getComputedStyle(elem).getPropertyValue("background-color")')
     assert background_color == 'rgba(0, 0, 0, 0)'
     background_color = calendar.locator('li[data-date="2023-08-09"]').evaluate('elem => window.getComputedStyle(elem).getPropertyValue("background-color")')
-    assert background_color == 'rgb(185, 246, 255)'
+    assert background_color == 'color(srgb 0.2944 0.60544 0.9856 / 0.5)'
     expect(calendar.locator('.aside-left > time')).to_be_empty()
     expect(calendar.locator('.aside-right > time')).to_have_text('Tue Oct 10 2023')
     calendar.locator('button.prev').click()
@@ -67,7 +67,7 @@ def test_daterange_initial(page, mocker, viewname):
     sleep(0.2)
     expect(calendar.locator('ul.months li.selected')).to_have_count(2)
     background_color = calendar.locator('li[data-date="2023-09-01"]').evaluate('elem => window.getComputedStyle(elem).getPropertyValue("background-color")')
-    assert background_color == 'rgb(185, 246, 255)'
+    assert background_color == 'color(srgb 0.2944 0.60544 0.9856 / 0.5)'
     calendar.locator('li[data-date="2023-09-01"]').click()
     sleep(0.2)
     expect(calendar.locator('ul.monthdays li.selected')).to_have_count(0)

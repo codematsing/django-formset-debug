@@ -11,7 +11,7 @@ import styles from './DjangoSelectize.scss';
 export class DjangoSelectize extends IncompleteSelect {
 	protected readonly shadowRoot: ShadowRoot;
 	private static styleSheet: CSSStyleSheet = new CSSStyleSheet();
-	private static nativeStyles: CSSStyleDeclaration|null = null;
+	private readonly nativeStyles: CSSStyleDeclaration;
 	private readonly numOptions: number = 12;
 	public readonly tomSelect: TomSelect;
 	private readonly observer: MutationObserver;
@@ -27,7 +27,7 @@ export class DjangoSelectize extends IncompleteSelect {
 			tomInput.removeAttribute('multiple');
 			isMultiple = true;
 		}
-		DjangoSelectize.nativeStyles = DjangoSelectize.nativeStyles ?? {...window.getComputedStyle(tomInput)} as CSSStyleDeclaration;
+		this.nativeStyles = {...window.getComputedStyle(tomInput)} as CSSStyleDeclaration;
 		if (isMultiple) {
 			// revert the above
 			tomInput.setAttribute('multiple', 'multiple');
@@ -174,11 +174,9 @@ export class DjangoSelectize extends IncompleteSelect {
 	}
 
 	private transferStyles() {
-		if (DjangoSelectize.nativeStyles === null)
-			throw new Error("Native styles not loaded");
 		const sheet = DjangoSelectize.styleSheet;
 		const wrapperStyle = (this.shadowRoot.host as HTMLElement).style;
-		wrapperStyle.setProperty('display', DjangoSelectize.nativeStyles.display);
+		wrapperStyle.setProperty('display', this.nativeStyles.display);
 		sheet.replaceSync(styles);
 		const tomInput = this.tomSelect.input;
 		const lineHeight = window.getComputedStyle(tomInput).getPropertyValue('line-height');
@@ -194,18 +192,18 @@ export class DjangoSelectize extends IncompleteSelect {
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight',
 						'letter-spacing', 'white-space'
-					]).concat(
-						`--border-style: ${window.getComputedStyle(tomInput).getPropertyValue('border-style')};`,
-						`--border-width: ${window.getComputedStyle(tomInput).getPropertyValue('border-width')};`,
-						`--border-radius: ${window.getComputedStyle(tomInput).getPropertyValue('border-radius')};`
-					);
+					]).concat(StyleHelpers.extractStyles(tomInput, {
+						'--border-style': 'border-style',
+						'--border-width': 'border-width',
+						'--border-radius': 'border-radius',
+					}));
 					loaded = true;
 					break;
 				case `${this.baseSelector} .ts-control`:
 					extraStyles = StyleHelpers.extractStyles(tomInput, [
 						'padding', 'transition'
 					]).concat(
-						`min-height: ${DjangoSelectize.nativeStyles['height']};`
+						`min-height: ${this.nativeStyles['height']};`,
 					);
 					break;
 				case `${this.baseSelector} .ts-control > input`:
@@ -285,28 +283,31 @@ export class DjangoSelectize extends IncompleteSelect {
 		const tomInput = this.tomSelect.input as HTMLSelectElement;
 
 		// some styles change when switching light/dark mode, so we need to update them
-		const mediaQueryStyles = [
-			StyleHelpers.mutableStyles(sheet, this.baseSelector, {
-				'border-color': '--border-color',
+		StyleHelpers.pushMediaQueryStyles([[
+			sheet,
+			this.baseSelector, {
+				'--border-color': 'border-color',
 				'color': 'color',
-			}, tomInput),
-			StyleHelpers.mutableStyles(sheet, `${this.baseSelector}.focus .ts-control`, {
+			},
+			tomInput
+		], [
+			sheet,
+			`${this.baseSelector}.focus .ts-control`, {
 				'box-shadow': 'box-shadow',
 				'border-color': 'border-color',
 				'outline': 'outline',
-			}, tomInput, '-focus-'),
-			StyleHelpers.mutableStyles(sheet, `${this.baseSelector}.disabled .ts-control`, {
+			},
+			tomInput, '-focus-'
+		], [
+			sheet,
+			`${this.baseSelector}.disabled .ts-control`, {
 				'background-color': 'background-color',
 				'border-color': 'border-color',
 				'color': 'color',
 				'outline': 'outline',
-			}, tomInput, '-disabled-'),
-		];
-		window.matchMedia('(prefers-color-scheme: dark)').onchange = () => {
-			StyleHelpers.attachPseudoStyles();
-			mediaQueryStyles.forEach(style => style());
-			StyleHelpers.detachPseudoStyles();
-		};
+			},
+			tomInput, '-disabled-'
+		]], true);
 
 		// the width of the control element must be updated when the window is resized
 		const widthStyles = StyleHelpers.mutableStyles(sheet, `${this.baseSelector} .ts-control`, {

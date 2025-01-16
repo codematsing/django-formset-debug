@@ -56,13 +56,26 @@ asynchronous file uploads, simply by replacing the widget.
 	    success_url = "/success"
 
 Remember, the Django view accepting the form data, must inherit from
-:class:`formset.upload.FileUploadMixin`. The class :class:`formset.views.FormView` already derives
-from it. No extra endpoint is required to activate this feature.
+:class:`formset.upload.FileUploadMixin`, otherwise the uploaded files can't be processed. The class
+:class:`formset.views.FormView` already derives from it. No extra endpoint is required to activate
+this feature.
 
-If an uploaded file contains an image renderable by the browser, that image is resized on the server
+If an uploaded file contains an image renderable by the browser, that image is resized by the server
 and a thumbnail version is returned to the client. For other file types, a symbolic icon is
-returned. In order to restrict file uploads to certain MIME-types, add ``accept`` to the widget's
-``attrs``, for example: ``UploadedFileInput(attrs={'accept': 'image/png, image/jpeg'})``.
+returned.
+
+
+.. rubric:: Restrict uploading to certain MIME-types
+
+In order to restrict file uploads to certain MIME-types, add ``accept`` to the widget's ``attrs``,
+for example: ``UploadedFileInput(attrs={'accept': 'image/png, image/jpeg'})``.
+
+
+.. rubric:: Limit the size of uploaded files
+
+The maximum size of uploaded files can be limited by setting the ``max-size`` attribute of the
+widget's ``attrs``, for example: ``UploadedFileInput(attrs={'max-size': 1024 * 1024})``.
+
 
 .. rubric:: Footnotes
 

@@ -21,10 +21,10 @@
 	align-items: stretch;
 	position: relative;
 	overflow: auto;
-	border-color: var(--richtext-border-color);
+	border-color: var(--border-color);
 
 	[role="menubar"] {
-		border-bottom-color: var(--richtext-border-color);
+		border-bottom-color: var(--border-color);
 		flex: 0 1 auto;
 		display: flex;
 		flex-wrap: wrap;
@@ -103,8 +103,8 @@
 					margin: 0;
 					list-style: none;
 					background-color: var(--django-formset-background-color);
-					border-color: var(--richtext-border-color);
-					box-shadow: color-mix(in srgb, currentcolor, transparent 50%) 0 0 5px;
+					border: 1px solid var(--border-color);
+					box-shadow: var(--border-color) 0 0 1rem;
 
 					> li {
 						padding: 0.25rem 0.5rem;

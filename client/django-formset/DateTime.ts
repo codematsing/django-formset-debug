@@ -29,6 +29,7 @@ class DateTimeField extends Widget {
 	private readonly inputFields: Array<HTMLElement> = [];
 	private readonly inputFieldsOrder: Array<number> = [];
 	private readonly baseSelector = '[is^="django-date"]';
+	private readonly styleSheet: CSSStyleSheet;
 	private hour12: boolean = false;
 	private currentDate: Date|null = null;  // when withRange=true, this is the lower bound
 	private extendedDate: Date|null = null;  // when withRange=true, this is the upper bound, otherwise unused
@@ -54,9 +55,7 @@ class DateTimeField extends Widget {
 			this.calendarOpener.innerHTML = calendarIcon;
 		}
 		this.installEventHandlers();
-		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
-			this.transferStyles();
-		}
+		this.styleSheet = StyleHelpers.stylesAreInstalled(this.baseSelector) ?? this.transferStyles();
 		this.transferClasses();
 		this.updateInputFields();
 	}
@@ -442,7 +441,7 @@ class DateTimeField extends Widget {
 			return this.inputFields[this.inputFieldsOrder[index + 1]];
 	}
 
-	private transferStyles() {
+	private transferStyles() : CSSStyleSheet {
 		const declaredStyles = document.createElement('style');
 		declaredStyles.innerText = styles;
 		document.head.appendChild(declaredStyles);
@@ -458,15 +457,12 @@ class DateTimeField extends Widget {
 					break;
 				case `${this.baseSelector} + [role="textbox"]`:
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
-						'background-color', 'border', 'border-radius', 'color', 'outline', 'height', 'line-height',
-						'padding',
-					]);
-					break;
-				case `${this.baseSelector} + [role="textbox"].focus`:
-					this.inputElement.classList.add('-focus-');
-					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
-						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition']);
-					this.inputElement.classList.remove('-focus-');
+						'height', 'line-height', 'padding',
+					]).concat(StyleHelpers.extractStyles(this.inputElement, {
+						'--border-style': 'border-style',
+						'--border-width': 'border-width',
+						'--border-radius': 'border-radius',
+					}));
 					break;
 				default:
 					break;
@@ -478,14 +474,36 @@ class DateTimeField extends Widget {
 		this.inputElement.style.transition = '';
 		if (!loaded)
 			throw new Error(`Could not load styles for ${this.baseSelector}`);
+		return declaredStyles.sheet as CSSStyleSheet;
 	}
 
 	private transferClasses() {
 		this.inputElement.classList.forEach(className => {
 			this.textBox.classList.add(className);
 		});
-		this.inputElement.classList.remove(...this.inputElement.classList);
 		this.inputElement.style.transition = '';
+	}
+
+	public initialize() {
+		// some styles change when switching light/dark mode, so we need to update them
+		StyleHelpers.pushMediaQueryStyles([[
+			this.styleSheet,
+			`${this.baseSelector} + [role="textbox"]`,
+			{
+				'--border-color': 'border-color',
+				'--outline': 'outline',
+			},
+			this.inputElement,
+		], [
+			this.styleSheet,
+			`${this.baseSelector} + [role="textbox"].focus`,
+			{
+				'border-color': 'border-color',
+				'box-shadow': 'box-shadow',
+				'outline': 'outline',
+			},
+			this.inputElement, '-focus-',
+		]], true);
 		this.inputElement.hidden = true;  // setting type="hidden" prevents dispatching events
 	}
 
@@ -526,6 +544,10 @@ export class DateFieldElement extends HTMLInputElement {
 		this[DT] = new DateTimeField(this, null);
 	}
 
+	connectedCallback() {
+		this[DT].initialize();
+	}
+
 	get valueAsDate() : Date | null {
 		return this[DT].valueAsDate();
 	}
@@ -543,6 +565,10 @@ export class DatePickerElement extends HTMLInputElement {
 		this[DT] = new DateTimeField(this, calendarElement as HTMLElement);
 	}
 
+	connectedCallback() {
+		this[DT].initialize();
+	}
+
 	get valueAsDate() : Date | null {
 		return this[DT].valueAsDate();
 	}
@@ -557,6 +583,10 @@ export class DateTimeFieldElement extends HTMLInputElement {
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		this[DT] = new DateTimeField(this, null);
+	}
+
+	connectedCallback() {
+		this[DT].initialize();
 	}
 
 	get valueAsDate() : Date | null {
@@ -576,6 +606,10 @@ export class DateTimePickerElement extends HTMLInputElement {
 		this[DT] = new DateTimeField(this, calendarElement as HTMLElement);
 	}
 
+	connectedCallback() {
+		this[DT].initialize();
+	}
+
 	get valueAsDate() : Date | null {
 		return this[DT].valueAsDate();
 	}
@@ -590,6 +624,10 @@ export class DateRangeFieldElement extends HTMLInputElement {
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		this[DT] = new DateTimeField(this, null);
+	}
+
+	connectedCallback() {
+		this[DT].initialize();
 	}
 
 	checkValidity() {
@@ -612,6 +650,10 @@ export class DateRangePickerElement extends HTMLInputElement {
 		this[DT] = new DateTimeField(this, calendarElement as HTMLElement);
 	}
 
+	connectedCallback() {
+		this[DT].initialize();
+	}
+
 	checkValidity() {
 		if (!super.checkValidity())
 			return false;
@@ -628,6 +670,10 @@ export class DateTimeRangeFieldElement extends HTMLInputElement {
 		if (!fieldGroup)
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		this[DT] = new DateTimeField(this, null);
+	}
+
+	connectedCallback() {
+		this[DT].initialize();
 	}
 
 	checkValidity() {
@@ -647,6 +693,10 @@ export class DateTimeRangePickerElement extends HTMLInputElement {
 			throw new Error(`Attempt to initialize ${this} outside <django-formset>`);
 		const calendarElement = fieldGroup.querySelector('[aria-label="calendar"]');
 		this[DT] = new DateTimeField(this, calendarElement as HTMLElement);
+	}
+
+	connectedCallback() {
+		this[DT].initialize();
 	}
 
 	checkValidity() {

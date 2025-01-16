@@ -30,10 +30,10 @@ style.innerText = mainStyles;
 document.head.appendChild(style);
 
 if (style.sheet instanceof CSSStyleSheet) {
-	const mediaQueryStyle = StyleHelpers.mutableStyles(style.sheet, 'django-formset', {
-		'background-color': '--django-formset-background-color'
-	}, document.body);
-	window.matchMedia('(prefers-color-scheme: dark)').onchange = () => mediaQueryStyle();
+	StyleHelpers.pushMediaQueryStyles([[style.sheet, 'django-formset', {
+		'--django-formset-background-color': 'background-color',
+		'--django-formset-foreground-color': 'color',
+	}, document.body]]);
 }
 
 

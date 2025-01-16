@@ -20,6 +20,7 @@ Django's counterparts.
 	django-formset
 	single-form
 	styling
+	dark-mode
 	default-widgets
 	alternative-widgets
 	buttons

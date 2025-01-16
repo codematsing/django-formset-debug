@@ -4,9 +4,6 @@
 
 
 .ts-wrapper {
-	--select-color-highlight: rgba(255, 237, 40, 0.4);
-	--selected-items-background-color: light-dark(rgb(134, 183, 254), rgb(13, 28, 198));
-
 	position: relative;
 
 	.ts-control {
@@ -119,7 +116,7 @@
 
 		background-color: color-mix(in srgb, var(--django-formset-background-color), transparent 25%);
 		backdrop-filter: blur(1rem);
-		margin: 0.125rem 0 0 0;
+		margin: 0.25rem 0 0 0;
 		border-top: none;
 		border-right: var(--border-width) var(--border-style) var(--border-color);
 		border-bottom: var(--border-width) var(--border-style) var(--border-color);
@@ -133,13 +130,13 @@
 			overflow: hidden;
 
 			&[aria-selected="true"] {
-				background-color: color-mix(in oklab, var(--django-formset-background-color), var(--django-formset-fg-color) 10%);
+				background-color: $active-item-background-color;
 			}
 			&.selected {
-				background-color: var(--selected-items-background-color);
+				background-color: $selected-item-background-color;
 			}
 			.highlight {
-				background: var(--select-color-highlight);
+				background: $select-color-highlight;
 				border-radius: 1px;
 			}
 		}
@@ -153,7 +150,7 @@
 
 		.optgroup {
 			.optgroup-header {
-				opacity: 0.5;
+				color: $semimuted-item-color;
 			}
 			.option {
 				margin-left: 1em;

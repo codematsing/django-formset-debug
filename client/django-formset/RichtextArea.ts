@@ -1292,22 +1292,18 @@ class RichtextArea {
 					break;
 			}
 		}
-		if (!loaded)
-			throw new Error(`Could not load styles for ${this.baseSelector}`);
 
 		// border color may change during runtime
-		const borderColor = () => {
-			const transition = this.textAreaElement.style.transition;
-			this.textAreaElement.style.transition = 'none';
-			const borderColor = window.getComputedStyle(this.textAreaElement).getPropertyValue('border-color');
-			this.textAreaElement.style.transition = transition;
-			return borderColor;
-		};
-		const borderColorRule = sheet.insertRule(`${this.baseSelector}{--richtext-border-color: ${borderColor()}}`);
-		window.matchMedia('(prefers-color-scheme: dark)').onchange = () => {
-			sheet.deleteRule(borderColorRule);
-			sheet.insertRule(`${this.baseSelector}{--richtext-border-color: ${borderColor()}}`, borderColorRule);
-		};
+		StyleHelpers.pushMediaQueryStyles([[
+			sheet,
+			this.baseSelector,
+			{'--border-color': 'border-color'},
+			this.textAreaElement,
+		]]);
+
+		if (!loaded)
+			throw new Error(`Could not load styles for ${this.baseSelector}`);
+		// window.matchMedia('(prefers-color-scheme: dark)').onchange = () => mediaQueryStyle();
 	}
 
 	public disconnect() {

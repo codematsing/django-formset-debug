@@ -414,6 +414,12 @@ this model.
 
 .. _django.db.models.fields.TextField: https://docs.djangoproject.com/en/stable/ref/models/fields/#textfield
 
+Always keep in mind that storing HTML provides by arbitrary users is a potential security risk. When
+rendering this HTML, it is important to sanitize it using a library such as `django-nh3`_. Moreover,
+do not forget to mark the content as safe text, when rendering it inside a Django template.
+
+.. _django-nh3: https://pypi.org/project/django-nh3/
+
 If the content of such a field shall be rendered inside a Django template, do not forget to mark
 it as "safe", either by using the function `django.utils.safestring.mark_safe`_ or by using the
 template filter `{{ …|safe }}`_.
@@ -423,8 +429,8 @@ template filter `{{ …|safe }}`_.
 
 While this is a quick and fast solution, we shall always keep in mind that storing plain HTML inside
 a database field, prevents us from transforming the stored information into the final format while
-rendering. This means that the stored HTML is rendered as-is. A better alternative is to store that
-data as JSON.
+rendering. This means that the stored HTML is rendered as-is. A better and more secure alternative
+is to store that data as JSON.
 
 
 Storing rich text as JSON
@@ -432,7 +438,9 @@ Storing rich text as JSON
 
 Since HTML content has an implicit tree structure, an alternative approach to HTML is to keep this
 hierarchy unaltered when storing. The best suited format for this is JSON. This approach has the
-advantage that HTML is rendered during runtime, allowing to adopt the result as needed.
+advantage that HTML is rendered during runtime, allowing to adopt the result as needed. It also does
+not require to sanitize the content, because the JSON structure is only converted to HTML tags
+allowed by the implementation.
 
 **django-formset** provides a special model field class
 :class:`formset.richtext.fields.RichTextField`. It shall be used as a replacement to Django's model
