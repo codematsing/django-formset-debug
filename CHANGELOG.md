@@ -1,5 +1,18 @@
 ## Changes
 
+- 1.5.6
+  * Fix: In `RichtextArea`, wait until the web component is completely initialized before validating
+    its content.
+
+- 1.5.5
+  * Fix: Regression in `FileUploadWidget`, drag and drop of file into drag area does not work.
+
+- 1.5.4
+  * yanked
+
+- 1.5.3
+  * Fix: Regression in `RichtextArea`, heading with a single level does not work.
+
 - 1.5.2
   * Fix naming issue in interactive docs, preventing the dialog not to close.
   * Fix in RichtextArea: Dropdown menu did not show up at the right position.
