@@ -66,9 +66,27 @@ control_elements = [
     controls.Undo(),
 ]
 
+
+control_elements_mini = [
+    controls.Heading(2),
+    controls.Bold(),
+    controls.Italic(),
+    controls.Underline(),
+    controls.Separator(),
+    controls.Redo(),
+    controls.Undo(),
+]
+
+
 class PlainRichTextForm(forms.Form):
     text = fields.CharField(
         widget=RichTextarea(control_elements=control_elements),
+    )
+
+
+class PlainRichTextMiniForm(forms.Form):
+    text = fields.CharField(
+        widget=RichTextarea(control_elements=control_elements_mini),
     )
 
 
@@ -87,6 +105,9 @@ urlpatterns = [
     path('plain_richtext', DemoFormView.as_view(
         form_class=PlainRichTextForm,
     ), name='plain_richtext'),
+    path('plain_richtext_mini', DemoFormView.as_view(
+        form_class=PlainRichTextMiniForm,
+    ), name='plain_richtext_mini'),
     path('plain_richtext_initialized', DemoFormView.as_view(
         form_class=PlainRichTextForm,
         initial={'text': '<p>Click <a href="https://example.org/">here</a></p>'},
@@ -192,7 +213,7 @@ def test_tiptap_marks(page, viewname, menubar, contenteditable, control):
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['plain_richtext', 'json_richtext'])
-def test_tiptap_heading(page, viewname, menubar, contenteditable):
+def test_tiptap_many_headings(page, viewname, menubar, contenteditable):
     heading = "Tiptap Editor"
     contenteditable.type(heading)
     assert contenteditable.inner_html() == f"<p>{heading}</p>"
@@ -204,6 +225,29 @@ def test_tiptap_heading(page, viewname, menubar, contenteditable):
     expect(submenu).to_be_visible()
     submenu.locator('[richtext-click="heading:1"]').click()
     assert contenteditable.inner_html() == f"<h1>{heading}</h1>"
+    set_caret(page, contenteditable, 5)
+    expect(menu_button).to_have_class('active')
+    expect(submenu).not_to_be_visible()
+    menu_button.click()
+    expect(submenu).to_be_visible()
+    expect(submenu.locator('li:first-child')).to_have_class('active')
+    expect(submenu.locator('li:nth-child(2)')).not_to_have_class('active')
+    expect(submenu.locator('li:nth-child(3)')).not_to_have_class('active')
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['plain_richtext_mini'])
+def test_tiptap_single_heading(page, viewname, menubar, contenteditable):
+    heading = "Tiptap Editor"
+    contenteditable.type(heading)
+    assert contenteditable.inner_html() == f"<p>{heading}</p>"
+    set_caret(page, contenteditable, 0)
+    menu_button = menubar.locator('[richtext-click="heading:2"]')
+    submenu = menubar.locator('[richtext-click="heading:2"] + ul[role="menu"]')
+    expect(submenu).not_to_be_visible()
+    menu_button.click()
+    expect(submenu).not_to_be_visible()
+    assert contenteditable.inner_html() == f"<h2>{heading}</h2>"
     set_caret(page, contenteditable, 5)
     expect(menu_button).to_have_class('active')
     expect(submenu).not_to_be_visible()
