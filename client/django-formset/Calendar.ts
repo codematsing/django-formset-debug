@@ -1,7 +1,5 @@
 import {StyleHelpers} from './helpers';
 import {Widget} from './Widget';
-import contractLeftIcon from '../icons/contract-left.svg';
-import contractRightIcon from '../icons/contract-right.svg';
 import styles from './Calendar.scss';
 
 
@@ -59,8 +57,6 @@ export class CalendarSheet extends Widget {
 	private readonly baseSelector = '.dj-calendar';
 	private readonly rangeSelectCssRule: CSSStyleRule;
 	private readonly rangeSelectorText: string;
-	private readonly contractLeftCursor: string;
-	private readonly contractRightCursor: string;
 
 	constructor(calendarElement: HTMLElement | null, settings: CalendarSettings) {
 		super(settings.inputElement);
@@ -82,8 +78,6 @@ export class CalendarSheet extends Widget {
 		this.rangeSelectorText = this.rangeSelectCssRule.selectorText;
 		this.registerCalendar();
 		this.sheetBounds = this.getSheetBounds();
-		this.contractLeftCursor = `url('data:image/svg+xml;utf8,${contractLeftIcon.replace(/[\n\t]/g, '')}') 9 9, pointer`;
-		this.contractRightCursor = `url('data:image/svg+xml;utf8,${contractRightIcon.replace(/[\n\t]/g, '')}') 9 9, pointer`;
 	}
 
 	private get todayDateString() : string {
@@ -505,11 +499,6 @@ export class CalendarSheet extends Widget {
 			const hoverDateString = event.target.getAttribute('data-date') ?? event.target.getAttribute('aria-label') ?? '';
 			const hoverDate = new Date(hoverDateString);
 			this.markDateRange(this.dateRange[0], hoverDate, true);
-			if (hoverDate.getTime() > this.dateRange[0].getTime()) {
-				this.rangeSelectCssRule.style.cursor = this.contractRightCursor;
-			} else {
-				this.rangeSelectCssRule.style.cursor = this.contractLeftCursor;
-			}
 		}
 	};
 
