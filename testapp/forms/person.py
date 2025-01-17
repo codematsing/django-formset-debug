@@ -22,7 +22,6 @@ class SimplePersonForm(forms.Form):
         max_length=50,
         help_text="Please enter at least two characters",
     )
-
     first_name = fields.RegexField(
         r'^[A-Z][ a-z\-]*$',
         label="First name",

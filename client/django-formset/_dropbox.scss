@@ -6,9 +6,10 @@
 		justify-content: space-between;
 		background-color: color-mix(in srgb, var(--django-formset-background-color), currentcolor 5%);
 		margin: 0 0 0.25rem 0.25rem;
-		padding: 0;
+		padding: 0.125rem;
 		list-style: none;
-		height: 8rem;
+		height: auto;
+		min-height: 8rem;
 		min-width: 8rem;
 		outline: grey thin dotted;
 
@@ -26,13 +27,14 @@
 			all: unset;
 			flex-grow: 1;
 			display: block;
-			height: inherit;
+			height: 100%;
 			max-width: calc(100% - 12rem);
 		}
 
 		> figcaption {
 			all: unset;
-			padding: 0.25rem 0.5rem;
+			padding: 0;
+			margin: 0 0.5rem;
 			overflow-x: hidden;
 			min-width: 12rem;
 
