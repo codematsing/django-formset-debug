@@ -2,17 +2,17 @@
 
 - 1.6
   * Main feature of this release: Full support for dark mode.
+  * Add support for Django-5.1.
   * Always apply 6 rows to the calendar widget to prevent resizing when paginating.
-  * To ``RichtextArea`` widget, add control elements to select font family, font size and line
+  * To `RichtextArea` widget, add control elements to select font family, font size and line
     spacing.
   * Fix: Only find direct dialog element for a menu button. This caused problems when nesting
     multiple richtext areas.
-  * Fix: Selectize widget did not apply proper styles if group elements are nested.
-  * Fix: FormDialog loaded main stylesheet unnecessarily
-  * Fix in RichtextArea widget: limit width of sub-dialogs to main textarea.
-  * RichtextArea widget: Menu items can be grouped in menubar to wrap consistently.
-  * RichtextArea widget: Add classbased Node- and Mark control-elements.
-  * Add support for Django-5.1.
+  * Fix: `Selectize` widget did not apply proper styles if group elements are nested.
+  * Fix: `FormDialog` loaded main stylesheet unnecessarily
+  * Fix: `RichtextArea` now limits the width of sub-dialogs to main textarea.
+  * Feature: In `RichtextArea` menu items can be grouped in menubar to wrap consistently.
+  * Feature: In `RichtextArea` add class-based Node- and Mark control-elements.
   * The build target has been renamed from `esbuild` to `esbuild.modular`.
 
 - 1.5.6
