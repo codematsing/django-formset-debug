@@ -244,18 +244,13 @@ def test_tiptap_single_heading(page, viewname, menubar, contenteditable):
     set_caret(page, contenteditable, 0)
     menu_button = menubar.locator('[richtext-click="heading:2"]')
     submenu = menubar.locator('[richtext-click="heading:2"] + ul[role="menu"]')
-    expect(submenu).not_to_be_visible()
+    expect(submenu).to_have_count(0)  # no submenu for single heading
     menu_button.click()
-    expect(submenu).not_to_be_visible()
     assert contenteditable.inner_html() == f"<h2>{heading}</h2>"
     set_caret(page, contenteditable, 5)
     expect(menu_button).to_have_class('active')
-    expect(submenu).not_to_be_visible()
-    menu_button.click()
-    expect(submenu).to_be_visible()
-    expect(submenu.locator('li:first-child')).to_have_class('active')
-    expect(submenu.locator('li:nth-child(2)')).not_to_have_class('active')
-    expect(submenu.locator('li:nth-child(3)')).not_to_have_class('active')
+    menu_button.click()  # toggle has no affect
+    assert contenteditable.inner_html() == f"<h2>{heading}</h2>"
 
 
 @pytest.mark.urls(__name__)

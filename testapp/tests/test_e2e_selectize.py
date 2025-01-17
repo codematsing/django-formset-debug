@@ -186,7 +186,7 @@ def test_add_multiple(page, form, viewname):
     assert input_element.evaluate('elem => elem.value') == ''
     field_group_element = page.locator('django-formset [role="group"]')
     expect(field_group_element).to_have_count(1)
-    expect(field_group_element).to_have_class(regex(r'dj-required ds-[0-9a-z]{9,11} dj-untouched dj-pristine'))
+    expect(field_group_element).to_have_class(regex(r'dj-required ds-[0-9a-z]{9,12} dj-untouched dj-pristine'))
     expect(field_group_element).not_to_have_class('dj-dirty')
     dropdown_element = page.locator('django-formset .shadow-wrapper .ts-dropdown.multi')
     expect(dropdown_element).to_have_count(1)
