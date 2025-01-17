@@ -15,7 +15,7 @@ theme" whenever they prefer.
 **django-formset** added support for **dark mode** in version 1.6. There are two different
 approaches for switching to dark mode. One is by using the browser's built-in dark mode feature.
 This typically is a system-wide setting that can be activated in your operating system. The other
-is by adding a special icon to the user interface of the website that allows to switch between light
+is by adding a special icon to the user interface of the website that allows switching between light
 and dark mode.
 
 For web developers there is a third option, in the DevTools of your Chrome browser, click the three
@@ -33,13 +33,13 @@ added to the ``<body>`` element. This attribute can have the values ``auto``, ``
 ``light`` or ``dark`` mode, that mode is enforced. This page for instance offers a button to switch
 between auto, light and dark mode. It is located in the top right corner of the page.
 
-Components provided by the **django-formset** library adopt themselves to the styling of the used
+Components provided by the **django-formset** library adapt themselves to the styling of the used
 CSS framework. This means that when the website switches to dark mode, these components must also
 switch to dark mode. This is achieved by using CSS variables that are set to different values
 depending on the color scheme. For instance, in Bootstrap the color of the text is set to
-``var(--bs-body-bg)`` which is either white or a dark grey. Whenever a mode switch occurs, an event
-handler intercepts this and reevaluates the styles of the given native HTML element and then applies
-them to the given web component implementing the widget.
+``var(--bs-body-color)`` which is either a dark grey in light mode, or a light grey in dark mode.
+Whenever a mode switch occurs, an event handler intercepts this and reevaluates the styles of the
+given native HTML element and then applies them to the given web component implementing the widget.
 
 In **django-formset**, dark mode settings provided by the operating system work out of the box and
 without the need to change any JavaScript code or to add additional CSS rules to the website's CSS
