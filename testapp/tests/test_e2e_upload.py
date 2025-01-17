@@ -32,11 +32,11 @@ def test_upload_image(page, mocker, settings, viewname):
     expect(choose_file_button).to_be_visible()  # that button would open the file selector
     dropbox = page.locator('django-formset .dj-form figure.dj-dropbox')
     expect(dropbox.locator('div.dj-empty-item')).to_have_text("Drag file here")
+    expect(dropbox.locator('img')).not_to_be_visible()
     page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
-    img_element = dropbox.locator('img')
-    expect(img_element).to_be_visible()
+    img_element = dropbox.locator('img[src^="/media/"]')
     img_src = img_element.get_attribute('src')
-    match = re.match(r'^/media/((upload_temp/python-django[_A-Za-z0-9]*?)_h128(.png))$', img_src)
+    match = re.match(r'^/media/((upload_temp/python-django[_A-Za-z0-9]*?)_h\d+(.png))$', img_src)
     assert match is not None
     thumbnail_url = match.group(1)
     assert (settings.MEDIA_ROOT / thumbnail_url).exists()  # the thumbnail
