@@ -137,7 +137,7 @@ class FieldGroup {
 			// currently only the `<textarea is="django-richtext">` is initialized asynchronously
 			textAreaElement.addEventListener('initialized', () => resolveInitialized(textAreaElement.isInitialized));
 		} else {
-			resolveInitialized(true);
+			resolveInitialized!(true);
 		}
 
 		this.name = this.assertUniqueName();
