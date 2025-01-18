@@ -10,7 +10,7 @@ class DateRangeCalendar(DateCalendar):
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
             'type': 'regex',
-            'pattern': r'\d{4}-\d{2}-\d{2};\d{4}-\d{2}-\d{2}',
+            'pattern': r'\d{4}-\d{2}-\d{2}T00:00;\d{4}-\d{2}-\d{2}T00:00',
             'is': 'django-daterangecalendar',
         }
         if attrs:
@@ -22,7 +22,7 @@ class DateRangePicker(DatePicker):
     def __init__(self, attrs=None, calendar_renderer=None):
         default_attrs = {
             'type': 'regex',
-            'pattern': r'\d{4}-\d{2}-\d{2};\d{4}-\d{2}-\d{2}',
+            'pattern': r'\d{4}-\d{2}-\d{2}T00:00;\d{4}-\d{2}-\d{2}T00:00',
             'is': 'django-daterangepicker',
         }
         if attrs:
@@ -34,7 +34,7 @@ class DateRangeTextbox(DateTextbox):
     def __init__(self, attrs=None):
         default_attrs = {
             'type': 'regex',
-            'pattern': r'\d{4}-\d{2}-\d{2};\d{4}-\d{2}-\d{2}',
+            'pattern': r'\d{4}-\d{2}-\d{2}T00:00;\d{4}-\d{2}-\d{2}T00:00',
             'is': 'django-daterangefield',
         }
         if attrs:
@@ -99,9 +99,7 @@ class BaseRangeField(fields.MultiValueField):
         super().__init__(widget=widget, **kwargs)
 
     def prepare_value(self, values):
-        if isinstance(values, (list, tuple)) and len(values) == 2:
-            return ';'.join((values[0].isoformat()[:self.num_digits], values[1].isoformat()[:self.num_digits]))
-        return ''
+        raise NotImplementedError("Subclasses must implement this method.")
 
     def compress(self, values):
         if not values:
@@ -123,17 +121,25 @@ class DateRangeField(BaseRangeField):
         'bound_ordering': _("The start date must be before the end date."),
     }
     base_field = fields.DateField
-    num_digits = 10
 
     def __init__(self, **kwargs):
         kwargs.setdefault('widget', DateRangePicker())
         super().__init__(**kwargs)
 
+    def prepare_value(self, values):
+        if isinstance(values, (list, tuple)) and len(values) == 2:
+            return ';'.join(map(lambda v: f'{v.isoformat()[:10]}T00:00', values))
+        return ''
+
 
 class DateTimeRangeField(DateRangeField):
     base_field = fields.DateTimeField
-    num_digits = 16
 
     def __init__(self, **kwargs):
         kwargs.setdefault('widget', DateTimeRangePicker())
         super().__init__(**kwargs)
+
+    def prepare_value(self, values):
+        if isinstance(values, (list, tuple)) and len(values) == 2:
+            return ';'.join(map(lambda v: v.isoformat()[:16], values))
+        return ''

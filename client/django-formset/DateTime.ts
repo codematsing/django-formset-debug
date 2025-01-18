@@ -61,14 +61,16 @@ class DateTimeField extends Widget {
 	}
 
 	private setInitialDate() {
+		const timestamp = (value: string) => value.length === 10 ? value + 'T00:00' : value;
+
 		const value = this.inputElement.value;
 		if (value) {
 			if (this.withRange) {
 				const [start, end] = value.split(';');
-				this.currentDate = start ? new Date(start) : null;
-				this.extendedDate = end ? new Date(end) : null;
+				this.currentDate = start ? new Date(timestamp(start)) : null;
+				this.extendedDate = end ? new Date(timestamp(end)) : null;
 			} else {
-				this.currentDate = new Date(value);
+				this.currentDate = new Date(timestamp(value));
 				this.extendedDate = null;
 			}
 		} else {
@@ -244,13 +246,19 @@ class DateTimeField extends Widget {
 		};
 		if (this.currentDate) {
 			setDateParts(this.currentDate, FieldPart.year, FieldPart.month, FieldPart.day, FieldPart.hour, FieldPart.minute);
-			this.inputElement.value = this.currentDate.toISOString().slice(0, this.dateOnly ? 10 : 16);
-			if (this.extendedDate) {
-				setDateParts(this.extendedDate, FieldPart.yearExt, FieldPart.monthExt, FieldPart.dayExt, FieldPart.hourExt, FieldPart.minuteExt);
-				this.inputElement.value = [
-					this.inputElement.value,
-					this.extendedDate.toISOString().slice(0, this.dateOnly ? 10 : 16),
-				].join(';');
+			const isoString = this.currentDate.toISOString();
+			if (this.withRange) {
+				this.inputElement.value = this.dateOnly ? `${isoString.slice(0, 10)}T00:00` : isoString.slice(0, 16);
+				if (this.extendedDate) {
+					setDateParts(this.extendedDate, FieldPart.yearExt, FieldPart.monthExt, FieldPart.dayExt, FieldPart.hourExt, FieldPart.minuteExt);
+					const isoString = this.extendedDate.toISOString();
+					this.inputElement.value = [
+						this.inputElement.value,
+						this.dateOnly ? `${isoString.slice(0, 10)}T00:00` : isoString.slice(0, 16),
+					].join(';');
+				}
+			} else {
+				this.inputElement.value = isoString.slice(0, this.dateOnly ? 10 : 16);
 			}
 		} else {
 			this.inputFields.forEach(field => field.innerText = '');
@@ -267,8 +275,10 @@ class DateTimeField extends Widget {
 				'-',
 				Math.min(Math.max(parseInt(this.inputFields[day].innerText), 1), 31).toString().padStart(2, '0'),
 			];
-			if (!this.dateOnly) {
-				dateParts.push('T');
+			dateParts.push('T');
+			if (this.dateOnly) {
+				dateParts.push('00:00');
+			} else {
 				dateParts.push(Math.min(Math.max(parseInt(this.inputFields[hour].innerText), 0), 23).toString().padStart(2, '0'));
 				dateParts.push(':');
 				dateParts.push(Math.min(Math.max(parseInt(this.inputFields[minute].innerText), 0), 59).toString().padStart(2, '0'));

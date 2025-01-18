@@ -51,10 +51,10 @@ urlpatterns = [
 def test_daterange_initial(page, mocker, viewname):
     calendar = page.locator('django-formset input[name="range"] + .dj-calendar')
     expect(calendar).to_be_visible()
-    expect(calendar.locator('li[data-date="2023-08-08"]')).to_have_class('selected')
-    background_color = calendar.locator('li[data-date="2023-08-07"]').evaluate('elem => window.getComputedStyle(elem).getPropertyValue("background-color")')
+    expect(calendar.locator('li[data-date="2023-08-08T00:00"]')).to_have_class('selected')
+    background_color = calendar.locator('li[data-date="2023-08-07T00:00"]').evaluate('elem => window.getComputedStyle(elem).getPropertyValue("background-color")')
     assert background_color == 'rgba(0, 0, 0, 0)'
-    background_color = calendar.locator('li[data-date="2023-08-09"]').evaluate('elem => window.getComputedStyle(elem).getPropertyValue("background-color")')
+    background_color = calendar.locator('li[data-date="2023-08-09T00:00"]').evaluate('elem => window.getComputedStyle(elem).getPropertyValue("background-color")')
     assert background_color == 'color(srgb 0.2944 0.60544 0.9856 / 0.5)'
     expect(calendar.locator('.aside-left > time')).to_be_empty()
     expect(calendar.locator('.aside-right > time')).to_have_text('Tue Oct 10 2023')
@@ -66,15 +66,15 @@ def test_daterange_initial(page, mocker, viewname):
     calendar.locator('button.extend').click()
     sleep(0.2)
     expect(calendar.locator('ul.months li.selected')).to_have_count(2)
-    background_color = calendar.locator('li[data-date="2023-09-01"]').evaluate('elem => window.getComputedStyle(elem).getPropertyValue("background-color")')
+    background_color = calendar.locator('li[data-date="2023-09-01T00:00"]').evaluate('elem => window.getComputedStyle(elem).getPropertyValue("background-color")')
     assert background_color == 'color(srgb 0.2944 0.60544 0.9856 / 0.5)'
-    calendar.locator('li[data-date="2023-09-01"]').click()
+    calendar.locator('li[data-date="2023-09-01T00:00"]').click()
     sleep(0.2)
     expect(calendar.locator('ul.monthdays li.selected')).to_have_count(0)
     expect(calendar.locator('.extend > time')).to_have_text('September 2023')
     calendar.locator('button.next').click()
     sleep(0.2)
-    expect(calendar.locator('li[data-date="2023-10-10"]')).to_have_class('selected')
+    expect(calendar.locator('li[data-date="2023-10-10T00:00"]')).to_have_class('selected')
     expect(calendar.locator('.aside-left > time')).to_have_text('Tue Aug 08 2023')
     calendar.locator('button.next').click()
     sleep(0.2)
@@ -103,8 +103,8 @@ def test_daterange_set(page, mocker, viewname):
         other = (today + timedelta(days=9)).strftime('%Y-%m-%d')
     else:
         other = (today - timedelta(days=9)).strftime('%Y-%m-%d')
-    calendar.locator(f'ul.monthdays li[data-date="{other}"]').hover()
-    calendar.locator(f'ul.monthdays li[data-date="{other}"]').click()
+    calendar.locator(f'ul.monthdays li[data-date="{other}T00:00"]').hover()
+    calendar.locator(f'ul.monthdays li[data-date="{other}T00:00"]').click()
     expect(calendar.locator('ul.monthdays li.selected')).to_have_count(2)
     spy = mocker.spy(DemoFormView, 'post')
     page.locator('django-formset').evaluate('elem => elem.submit()')

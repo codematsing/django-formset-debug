@@ -56,7 +56,7 @@ def test_datetimepicker_set(page, mocker, viewname, locale):
     today_li = calendar.locator('ul.monthdays > li.today')
     expect(today_li).to_be_visible()
     today_string = now.date().isoformat()
-    assert today_li.get_attribute('data-date') == today_string
+    assert today_li.get_attribute('data-date') == f'{today_string}T00:00'
     spy = mocker.spy(DemoFormView, 'get')
     today_li.click()
     sleep(0.2)
@@ -160,7 +160,7 @@ def test_datetimepicker_change(page, mocker, viewname, locale):
     assert querydict.get('interval') == '15'
     spy.reset_mock()
 
-    calendar.locator('ul.months li[data-date="2023-07-01"]').click()
+    calendar.locator('ul.months li[data-date="2023-07-01T00:00"]').click()
     sleep(0.2)
     spy.assert_called()
     assert spy.spy_return.status_code == 200
@@ -171,7 +171,7 @@ def test_datetimepicker_change(page, mocker, viewname, locale):
     assert querydict.get('interval') == '15'
     spy.reset_mock()
 
-    calendar.locator('ul.monthdays li[data-date="2023-07-09"]').click()
+    calendar.locator('ul.monthdays li[data-date="2023-07-09T00:00"]').click()
     sleep(0.2)
     spy.assert_called()
     assert spy.spy_return.status_code == 200
@@ -224,7 +224,7 @@ def test_datetimepicker_navigate(page, mocker, viewname):
     assert querydict.get('interval') == '15'
     spy.reset_mock()
 
-    expect(calendar.locator('ul.monthdays li.selected')).to_have_attribute('data-date', '2023-03-01')
+    expect(calendar.locator('ul.monthdays li.selected')).to_have_attribute('data-date', '2023-03-01T00:00')
     page.keyboard.press('ArrowDown')
     page.keyboard.press('ArrowLeft')
     page.keyboard.press('Enter')
