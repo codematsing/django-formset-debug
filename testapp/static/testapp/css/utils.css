@@ -1,3 +1,7 @@
+.dj-errorlist {
+	list-style: none;
+}
+
 
 .text-red {
 	color: rgb(192, 0, 0);
