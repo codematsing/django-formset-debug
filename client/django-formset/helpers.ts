@@ -3,6 +3,7 @@ export namespace StyleHelpers {
 	const styleElement = document.createElement('style');
 	const mediaQueryStyles = Array<[Function[], boolean]>();
 	const observer = new MutationObserver(themeHasChanged);
+	observer.observe(document.documentElement, {attributes: true});
 	observer.observe(document.body, {attributes: true});
 	window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', stylesHaveChanged);
 
