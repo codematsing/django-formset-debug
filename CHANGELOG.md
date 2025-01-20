@@ -1,5 +1,12 @@
 ## Changes
 
+- 1.6.1
+  * Fix: `DatePicker` and `DateCalendar` sometimes had an offest of one day, if timezone caused a
+    shift after midnight.
+  * Fix: Adding `<html data-bs-theme="…">` now also causes a color adjustment for widgets.
+  * Improve styling of the dropbox in `FileUploadWidget`.
+  * Prevent flickering of submenus in `RichtextArea` during initialization.
+
 - 1.6
   * Main feature of this release: Full support for dark mode.
   * Add support for Django-5.1.

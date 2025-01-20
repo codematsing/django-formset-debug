@@ -43,9 +43,9 @@ given native HTML element and then applies them to the given web component imple
 
 In **django-formset**, dark mode settings provided by the operating system work out of the box and
 without the need to change any JavaScript code or to add additional CSS rules to the website's CSS
-files, if the used CSS framework supports it. This is the case for **Bootstrap 5**. If a manual
-dark mode switcher is desired, the only thing to take care of is to ensure that the ``<body>``
-element contains an attribute containing the substring "theme". Valid attributes for instance are
-``data-theme`` (used by Sphinx), ``theme`` or ``data-bs-theme`` (used by Bootstrap). This attribute
-must contain the value of the actual theme, it is observed by this library and whenever it changes,
-the styles of the web components are updated accordingly.
+files, provided the used CSS framework supports it. This is the case for **Bootstrap 5**. If a
+manual dark mode switcher is desired, then the only thing to take care of is to ensure that either
+the ``<html>``- or the ``<body>``-element contains an attribute containing the substring "theme".
+Valid attributes for instance are ``data-theme`` (used by Sphinx), ``theme`` or ``data-bs-theme``
+(used by Bootstrap). This attribute must contain the value of the actual theme, it is observed by
+this library and whenever it changes, the styles of the web components are updated accordingly.
