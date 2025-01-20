@@ -1057,6 +1057,8 @@ class RichtextArea {
 				this.installEventHandlers();
 				this.attributesObserver.observe(this.textAreaElement, {attributes: true});
 				if (this.menubarElement) {
+					// to prevent flickering when loading the page, the visibility of the menubar is hidden
+					this.menubarElement.style.visibility = '';
 					this.resizeObserver.observe(this.menubarElement);
 					this.wrapMenubar();
 				}
