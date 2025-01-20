@@ -7,7 +7,6 @@ export namespace StyleHelpers {
 	observer.observe(document.body, {attributes: true});
 	window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', stylesHaveChanged);
 
-
 	export function extractStyles(element: Element, properties: Array<string>|{[key: string]: string}): string {
 		let styles = Array<string>();
 		const style = window.getComputedStyle(element);

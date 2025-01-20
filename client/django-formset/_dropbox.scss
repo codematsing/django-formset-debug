@@ -3,11 +3,10 @@
 		all: unset;
 		display: inline-flex;
 		align-items: center;
-		justify-content: space-between;
+		justify-content: flex-start;
 		background-color: color-mix(in srgb, var(--django-formset-background-color), currentcolor 5%);
 		margin: 0 0 0.25rem 0.25rem;
-		padding: 0.125rem;
-		list-style: none;
+		padding: 1px;
 		height: auto;
 		min-height: 8rem;
 		min-width: 8rem;
@@ -25,18 +24,20 @@
 
 		> img {
 			all: unset;
-			flex-grow: 1;
 			display: block;
-			height: 100%;
-			max-width: calc(100% - 12rem);
+			min-width: inherit;
+			min-height: 100%;
+			max-width: calc(100% - 18rem);
 		}
 
 		> figcaption {
 			all: unset;
-			padding: 0;
-			margin: 0 0.5rem;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-around;
 			overflow-x: hidden;
-			min-width: 12rem;
+			margin: 0 1rem;
+			height: 100%;
 
 			dl {
 				font-size: small;
@@ -59,8 +60,7 @@
 			}
 
 			.dj-download-file {
-				margin-left: 1rem;
-				float: right;
+				margin-left: 2rem;
 			}
 
 		}
