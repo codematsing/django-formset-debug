@@ -163,6 +163,13 @@ window.addEventListener('DOMContentLoaded', (event) => {
 				}).catch(err => reject(err));
 			}));
 		}
+		if (fragmentRoot.querySelector('django-stepper-collection')) {
+			promises.push(new Promise((resolve, reject) => {
+				import('./django-formset/StepperCollection').then(({StepperCollectionElement}) => {
+					defineComponent(resolve, 'django-stepper-collection', StepperCollectionElement);
+				}).catch(err => reject(err));
+			}));
+		}
 	}
 
 	document.querySelectorAll('template.empty-collection').forEach(element => {

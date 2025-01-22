@@ -42,6 +42,7 @@ from testapp.forms.contact import (
 from testapp.forms.birthdate import BirthdateBoxForm, BirthdateCalendarForm, BirthdateInputForm, BirthdatePickerForm
 from testapp.forms.booking import BookingBoxForm, BookingCalendarForm, BookingPickerForm
 from testapp.forms.cafeteria import CafeteriaCollection
+from testapp.forms.checkout import CheckoutCollection
 from testapp.forms.country import CountryForm
 from testapp.forms.county import CountyForm
 from testapp.forms.customer import CustomerCollection
@@ -569,6 +570,9 @@ urlpatterns = [
         initial={'person': {'first_name': "Jack", 'last_name': "Lee"}, 'profession': {'company': "Awesto"}},
         extra_context={'click_actions': 'disable -> submit -> setFieldValue(profession.company, ^success_url) !~ scrollToError'},
     ), name='simplecontact'),
+    path('checkout', DemoFormCollectionView.as_view(
+        collection_class=CheckoutCollection,
+    ), name='checkout'),
     path('terms_of_use', DemoFormCollectionView.as_view(
         collection_class=AcceptTermsCollection,
         template_name='testapp/form-collection-no-buttons.html',

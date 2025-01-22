@@ -1,0 +1,20 @@
+{% spaceless %}
+{% if collection.legend %}<legend>{{ collection.legend }}</legend>{% endif %}
+<django-stepper-collection>
+	<ul class="stepper-horizontal">
+{% for holder in collection %}
+		<li class="stepper-step">
+			<div class="stepper-head">
+				<span class="stepper-head-icon">{{ forloop.counter }}</span>
+			</div>
+		</li>
+{% endfor %}
+	</ul>
+{% for holder in collection %}
+	<django-form-collection{% if css_classes %} class="{{ css_classes }}"{% endif %}>
+	{{ holder }}
+	</django-form-collection>
+{% endfor %}
+{% if collection.help_text %}{% include help_text_template with help_text=collection.help_text %}{% endif %}
+</django-stepper-collection>
+{% endspaceless %}

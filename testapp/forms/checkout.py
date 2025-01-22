@@ -1,9 +1,8 @@
-from django.forms.fields import CharField, ChoiceField
+from django.forms.fields import CharField
 from django.forms.forms import Form
-from django.forms.widgets import RadioSelect
-from formset.collection import FormCollection
 from formset.dialog import ApplyButton, CancelButton, DialogForm
 from formset.fields import Activator
+from formset.stepper import StepperCollection
 
 
 class ContactForm(Form):
@@ -14,7 +13,7 @@ class ContactForm(Form):
     )
 
 
-class ShippingForm(DialogForm):
+class ShippingForm(Form):
     induce_activate = '..contact.next:active'
 
     street = CharField(
@@ -31,7 +30,7 @@ class ShippingForm(DialogForm):
     )
 
 
-class PaymentForm(DialogForm):
+class PaymentForm(Form):
     induce_activate = '..shipping.next:active'
 
     street = CharField(
@@ -48,7 +47,7 @@ class PaymentForm(DialogForm):
     )
 
 
-class CheckoutCollection(FormCollection):
+class CheckoutCollection(StepperCollection):
     legend = "Order your coffee"
     contact = ContactForm()
     shipping = ShippingForm()
