@@ -30,7 +30,7 @@ setup(
     description='The missing widgets and form manipulation library for Django',
     author='Jacob Rief',
     author_email='jacob.rief@gmail.com',
-    url='https://github.com/jrief/django-formset',
+    url='https://django-formset.fly.dev/',
     packages=find_namespace_packages(include=['formset', 'formset.*']),
     install_requires=[
         'django>=4.2',
