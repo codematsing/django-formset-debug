@@ -495,6 +495,11 @@ class DateTimeField extends Widget {
 	}
 
 	public initialize() {
+		if (this.calendar) {
+			// to prevent flickering when loading the page, the popup dialog is hidden
+			this.calendar.element.style.visibility = '';
+		}
+
 		// some styles change when switching light/dark mode, so we need to update them
 		StyleHelpers.pushMediaQueryStyles([[
 			this.styleSheet,
