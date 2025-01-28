@@ -1,7 +1,7 @@
 ## Changes
 
 - 1.6.1
-  * Fix: `DatePicker` and `DateCalendar` sometimes had an offest of one day, if timezone caused a
+  * Fix: `DatePicker` and `DateCalendar` sometimes had an offset of one day, if timezone caused a
     shift after midnight.
   * Fix: Adding `<html data-bs-theme="…">` now also causes a color adjustment for widgets.
   * Improve styling of the dropbox in `FileUploadWidget`.
