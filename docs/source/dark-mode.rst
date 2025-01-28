@@ -28,10 +28,10 @@ between light and dark mode.
 **django-formset** does not provide any helpers for switching between light and dark mode. This
 feature is left to the developer of the website but usually is provided by the CSS framework used
 for the website. For example, **Bootstrap 5** understands the special attribute ``data-bs-theme``
-added to the ``<body>`` element. This attribute can have the values ``auto``, ``light``, or
-``dark``. When set to ``auto``, the operating system's dark mode setting is respected. When set to
-``light`` or ``dark`` mode, that mode is enforced. This page for instance offers a button to switch
-between auto, light and dark mode. It is located in the top right corner of the page.
+added to the ``<html>`` element of a page. This attribute can have the values ``auto``, ``light``,
+or ``dark``. When set to ``auto``, the operating system's dark mode setting is respected. When set
+to ``light`` or ``dark`` mode, that mode is enforced. This page for instance offers a button to
+switch between auto, light and dark mode. It is located in the top right corner of the page.
 
 Components provided by the **django-formset** library adapt themselves to the styling of the used
 CSS framework. This means that when the website switches to dark mode, these components must also

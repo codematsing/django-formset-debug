@@ -42,7 +42,7 @@ explain their functionality:
   submitted along with the form's payload and will be available to our ``FormView`` instance, which
   is connected to the given endpoint. From inside that ``FormView`` instance the submitted extra
   data can then be accessed by calling ``self.get_extra_data()``. 
-* If the submission was successful, ``proceed`` tells the client what to do next. If called without
+* If the submission was successful, ``proceed`` tells the browser what to do next. If called without
   arguments, the default is to load the page given by the ``success_url`` provided by our Django
   view handling the request. If instead we use ``proceed("/path/to/success/page")``, that page is
   loaded on successful form submission. This allows web designers to specify that URL like a link,

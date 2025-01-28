@@ -219,7 +219,8 @@ to separate the other buttons visually using a vertical bar.
 
 The class :class:`formset.richtext.controls.Group` is just a wrapper and can be used to group other
 control elements. Each group shows a vertical bar for visual separation unless it isn't the last
-entry in the current line. It hence can be used to group buttons which belong together.
+entry in the current line. It hence can be used to group buttons which belong together. If the group
+does not fit into the menu bar, it wraps altogether to the next line.
 
 
 .. rubric:: FontFamily
@@ -390,6 +391,12 @@ entered into this text field. In the bottom right corner, this will show how man
 still be entered.
 
 
+.. rubric:: use_json
+
+If the content of the rich text editor shall be stored as JSON, set ``use_json=True``. This only is
+required when using this widget for a Django form's ``CharField``. When using the model field class
+:class:`formset.richtext.fields.RichTextField`, this is not necessary.
+
 .. rubric:: placeholder
 
 By adding ``placeholder="Some text"`` to the widget's attributes, we can add a placeholder to the
@@ -475,31 +482,41 @@ available control elements. Such a configured editor then will look like:
 	        model = BlogModel
 	        fields = '__all__'
 	        widgets = {
-	            'body': RichTextarea(control_elements=[
-	                controls.Heading([1,2,3]),
-	                controls.Bold(),
-	                controls.Blockquote(),
-	                controls.CodeBlock(),
-	                controls.HardBreak(),
-	                controls.Italic(),
-	                controls.Underline(),
-	                controls.TextColor(['rgb(212, 0, 0)', 'rgb(0, 212, 0)', 'rgb(0, 0, 212)']),
-	                controls.TextIndent(),
-	                controls.TextIndent('outdent'),
-	                controls.TextMargin('increase'),
-	                controls.TextMargin('decrease'),
-	                controls.TextAlign(['left', 'center', 'right']),
-	                controls.HorizontalRule(),
-	                controls.Subscript(),
-	                controls.Superscript(),
-	                controls.DialogControl(dialogs.SimpleLinkDialogForm()),
-	                controls.DialogControl(dialogs.PlaceholderDialogForm()),
-	                controls.DialogControl(dialogs.FootnoteDialogForm()),
-	                controls.Separator(),
-	                controls.ClearFormat(),
-	                controls.Redo(),
-	                controls.Undo(),
-	            ], attrs={'placeholder': "Start typing …", 'maxlength': 2000}),
+	            'body': RichTextarea(
+	                control_elements=[
+	                    controls.Heading([1,2,3]),
+	                    controls.Bold(),
+	                    controls.Blockquote(),
+	                    controls.CodeBlock(),
+	                    controls.HardBreak(),
+	                    controls.Italic(),
+	                    controls.Underline(),
+	                    controls.TextColor([
+	                        'rgb(212, 0, 0)',
+	                        'rgb(0, 212, 0)',
+	                        'rgb(0, 0, 212)',
+	                    ]),
+	                    controls.TextIndent(),
+	                    controls.TextIndent('outdent'),
+	                    controls.TextMargin('increase'),
+	                    controls.TextMargin('decrease'),
+	                    controls.TextAlign(['left', 'center', 'right']),
+	                    controls.HorizontalRule(),
+	                    controls.Subscript(),
+	                    controls.Superscript(),
+	                    controls.DialogControl(dialogs.SimpleLinkDialogForm()),
+	                    controls.DialogControl(dialogs.PlaceholderDialogForm()),
+	                    controls.DialogControl(dialogs.FootnoteDialogForm()),
+	                    controls.Separator(),
+	                    controls.ClearFormat(),
+	                    controls.Redo(),
+	                    controls.Undo(),
+	                ],
+	                attrs={
+	                    'placeholder': "Start typing …",
+	                    'maxlength': 2000
+	                },
+	            ),
 	        }
 
 .. django-view:: editor_view
