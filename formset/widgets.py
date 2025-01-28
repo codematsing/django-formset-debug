@@ -12,8 +12,15 @@ from django.core.files.uploadedfile import UploadedFile
 from django.core.signing import get_cookie_signer
 from django.db.models.query_utils import Q
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
-from django.forms.widgets import (FILE_INPUT_CONTRADICTION, DateTimeBaseInput, FileInput, Select, SelectMultiple,
-                                  TextInput, Widget)
+from django.forms.widgets import (
+    FILE_INPUT_CONTRADICTION,
+    DateTimeBaseInput,
+    FileInput,
+    Select,
+    SelectMultiple,
+    TextInput,
+    Widget,
+)
 from django.template.loader import get_template
 from django.utils.encoding import uri_to_iri
 from django.utils.functional import cached_property
