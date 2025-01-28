@@ -8,15 +8,15 @@ from formset.fields import Activator
 
 class CoffeeForm(Form):
     nickname = CharField()
-    flavors = Activator(
-        label="Add flavors",
-        help_text="Open the dialog to edit flavors",
+    add_flavor = Activator(
+        label="Add flavor",
+        help_text="Open the dialog to add a flavor",
     )
 
 
 class FlavorForm(DialogForm):
     title = "Choose a Flavor"
-    induce_open = '..coffee.flavors:active'
+    induce_open = 'coffee.add_flavor:active'
     induce_close = '.cancel:active || .apply:active'
 
     flavors = ChoiceField(
@@ -43,6 +43,12 @@ class FlavorForm(DialogForm):
 
 class CoffeeOrderCollection(FormCollection):
     legend = "Order your coffee"
+    coffee = CoffeeForm()
+    flavor = FlavorForm()
+
+
+class MultipleCoffeeOrderCollection(FormCollection):
+    legend = "Order your coffee"
     add_label = "Add Coffee Order"
     min_siblings = 1
     extra_siblings = 1
@@ -51,4 +57,4 @@ class CoffeeOrderCollection(FormCollection):
 
 
 class CafeteriaCollection(FormCollection):
-    coffee_order = CoffeeOrderCollection()
+    coffee_order = MultipleCoffeeOrderCollection()

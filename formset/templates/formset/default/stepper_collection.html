@@ -3,9 +3,10 @@
 <django-stepper-collection>
 	<ul class="stepper-horizontal">
 {% for holder in collection %}
-		<li class="stepper-step">
+		<li prefix="{{ holder.prefix }}" class="stepper-step"{% if holder.induce_activate %} df-induce-activate="{{ holder.induce_activate }}"{% endif %}>
 			<div class="stepper-head">
-				<span class="stepper-head-icon">{{ forloop.counter }}</span>
+				<span class="stepper-head-icon{% if holder.step_label %} has-label{% endif %}">{{ forloop.counter }}</span>
+				{{ holder.step_label }}
 			</div>
 		</li>
 {% endfor %}

@@ -3,7 +3,7 @@
 @import "dualselector";
 @import "colors";
 
-select::placeholder {
+input::placeholder, select::placeholder {
 	color: rgb(128, 128, 128);
 }
 select.ts-hidden-accessible {

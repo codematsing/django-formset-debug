@@ -1,20 +1,69 @@
+@import "colors";
+
 django-stepper-collection {
+	display: block;
+
 	.stepper-horizontal {
 		display: flex;
 		justify-content: space-between;
 		list-style: none;
-		padding: 0 2rem;
+		padding: 0;
 	}
 
-	.stepper-head-icon {
+	.stepper-step {
 		display: flex;
-		align-items: center;
+		flex-grow: 1;
 		justify-content: center;
-		width: 2rem;
-		height: 2rem;
-		border-radius: 50%;
-		border: 1px solid rgb(128, 128, 128);
-		background-color: color-mix(in srgb, var(--django-formset-background-color), currentcolor 5%);
-		color: var(--django-formset-fg-color);
+
+		.stepper-head {
+			display: flex;
+			flex-grow: 1;
+			align-items: center;
+
+			&::before {
+				margin-right: 0.5rem;
+			}
+
+			&::after {
+				margin-left: 0.5rem;
+			}
+
+			&::before, &::after {
+				content: "";
+				flex: 1;
+				height: 1px;
+				width: 100%;
+				background-color: grey;
+			}
+		}
+
+		&:not([aria-current="step"]).visited .stepper-head-icon {
+			cursor: pointer;
+			background-color: $calendar-range-background-color;
+		}
+
+		&[aria-current="step"].visited .stepper-head-icon {
+			background-color: $selected-item-background-color;
+			color: var(--django-formset-background-color);
+		}
+
+		.stepper-head-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 2rem;
+			height: 2rem;
+			border-radius: 50%;
+			border: 1px solid rgb(128, 128, 128);
+			background-color: color-mix(in srgb, var(--django-formset-background-color), currentcolor 5%);
+			color: var(--django-formset-fg-color);
+			&.has-label {
+				margin-right: 0.5rem;
+			}
+		}
+	}
+
+	> django-form-collection:not([aria-current="step"]) {
+		display: none;
 	}
 }

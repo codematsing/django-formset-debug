@@ -1,7 +1,16 @@
-from formset.collection import FormCollection
+from formset.collection import BaseFormCollection, FormCollectionMeta
 
 
-class StepperCollection(FormCollection):
+class StepperCollectionMeta(FormCollectionMeta):
+    def __new__(cls, *args, **kwargs):
+        new_class = super().__new__(cls, *args, **kwargs)
+        for holder in new_class.declared_holders.values():
+            setattr(holder, 'induce_activate', getattr(holder, 'induce_activate', None))
+            setattr(holder, 'step_label', getattr(holder, 'step_label', ''))
+        return new_class
+
+
+class StepperCollection(BaseFormCollection, metaclass=StepperCollectionMeta):
     template_name = 'formset/default/stepper_collection.html'
 
     def iter_many(self):

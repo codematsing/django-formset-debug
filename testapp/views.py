@@ -41,7 +41,7 @@ from testapp.forms.contact import (
 )
 from testapp.forms.birthdate import BirthdateBoxForm, BirthdateCalendarForm, BirthdateInputForm, BirthdatePickerForm
 from testapp.forms.booking import BookingBoxForm, BookingCalendarForm, BookingPickerForm
-from testapp.forms.cafeteria import CafeteriaCollection
+from testapp.forms.cafeteria import CafeteriaCollection, CoffeeOrderCollection
 from testapp.forms.checkout import CheckoutCollection
 from testapp.forms.country import CountryForm
 from testapp.forms.county import CountyForm
@@ -361,6 +361,31 @@ demo_css_classes = {
                 'reset': 'd-grid col-6 col-md-5 col-lg-4 col-xl-3',
             },
         },
+        'contact': {
+            'form_css_classes': 'row',
+            'field_css_classes': {
+                '*': 'mb-2 col-12',
+                'next': 'mt-2 offset-6 col-6',
+            },
+        },
+        'shipping': {
+            'form_css_classes': 'row',
+            'field_css_classes': {
+                '*': 'mb-2 col-12',
+                'postal_code': 'mb-2 col-4',
+                'city': 'mb-2 col-8',
+                'previous': 'mt-2 col-6',
+                'next': 'mt-2 col-6',
+            },
+        },
+        'payment': {
+            'form_css_classes': 'row',
+            'field_css_classes': {
+                '*': 'mb-2 col-12',
+                'previous': 'mt-2 col-6',
+                'submit': 'mt-2 col-6',
+            },
+        },
         'horizontal': {
             'field_css_classes': 'row mb-3',
             'label_css_classes': 'col-sm-3',
@@ -572,15 +597,19 @@ urlpatterns = [
     ), name='simplecontact'),
     path('checkout', DemoFormCollectionView.as_view(
         collection_class=CheckoutCollection,
+        template_name='testapp/form-collection-no-buttons.html',
     ), name='checkout'),
     path('terms_of_use', DemoFormCollectionView.as_view(
         collection_class=AcceptTermsCollection,
         template_name='testapp/form-collection-no-buttons.html',
     ), name='simplecontact'),
     path('issue', IssueCollectionView.as_view(), name='issue'),
+    path('coffe', DemoFormCollectionView.as_view(
+        collection_class=CoffeeOrderCollection,
+    ), name='coffe'),
     path('cafeteria', DemoFormCollectionView.as_view(
         collection_class=CafeteriaCollection,
-    ), name='simplecontact'),
+    ), name='cafeteria'),
     path('customer', DemoFormCollectionView.as_view(
         collection_class=CustomerCollection,
     ), name='customer'),
