@@ -163,6 +163,13 @@ window.addEventListener('DOMContentLoaded', (event) => {
 				}).catch(err => reject(err));
 			}));
 		}
+		if (fragmentRoot.querySelector('dialog[is="django-form-dialog"]')) {
+			promises.push(new Promise((resolve, reject) => {
+				import('./django-formset/FormDialog').then(({FormDialogElement}) => {
+					defineComponent(resolve, 'django-form-dialog', FormDialogElement, {extends: 'dialog'});
+				}).catch(err => reject(err));
+			}));
+		}
 		if (fragmentRoot.querySelector('django-stepper-collection')) {
 			promises.push(new Promise((resolve, reject) => {
 				import('./django-formset/StepperCollection').then(({StepperCollectionElement}) => {

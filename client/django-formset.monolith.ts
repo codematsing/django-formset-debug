@@ -12,6 +12,7 @@ import {RichTextAreaElement} from './django-formset/RichtextArea';
 import {DjangoSlugElement} from './django-formset/DjangoSlug';
 import {DateCalendarElement, DateTimeCalendarElement, DateRangeCalendarElement, DateTimeRangeCalendarElement} from './django-formset/Calendar';
 import {DateFieldElement, DatePickerElement, DateTimeFieldElement, DateTimePickerElement, DateRangeFieldElement, DateTimeRangeFieldElement, DateRangePickerElement, DateTimeRangePickerElement} from './django-formset/DateTime';
+import {FormDialogElement} from './django-formset/FormDialog';
 import {StepperCollectionElement} from './django-formset/StepperCollection';
 
 
@@ -67,6 +68,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
 	customElementNames.push('django-datetimerangecalendar');
 	window.customElements.define('django-datetimerangepicker', DateTimeRangePickerElement, {extends: 'input'});
 	customElementNames.push('django-datetimerangepicker');
+	window.customElements.define('django-form-dialog', FormDialogElement, {extends: 'dialog'});
+	customElementNames.push('django-form-dialog');
 	window.customElements.define('django-stepper-collection', StepperCollectionElement);
 	customElementNames.push('django-stepper-collection');
 

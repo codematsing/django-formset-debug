@@ -174,3 +174,10 @@ export namespace StyleHelpers {
 		} // else handle other CSSRule types
 	}
 }
+
+export function assert(condition: any, message?: string) {
+	if (!condition) {
+		message = message ? `Assertion failed: ${message}` : "Assertion failed";
+		throw new Error(message);
+	}
+}

@@ -10,6 +10,8 @@ interface DjangoFormset {
 	endpoint: string;
 	CSRFToken: string | undefined;
 	buttons: Array<DjangoButton>;
+	currentActiveButton: DjangoButton | null;
+	registerInducer(inducer: Inducible, func: Function): void;
 }
 
 interface DjangoForm {
@@ -35,4 +37,8 @@ interface OptionData {
 	id: string,
 	label: string,
 	optgroup?: string,
+}
+
+interface Inducible {
+	updateOperability(...args: any[]): void;
 }

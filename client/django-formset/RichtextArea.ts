@@ -32,7 +32,7 @@ import {TextMargin, TextMarginOptions } from '../tiptap-extensions/margin';
 import {TextColor} from '../tiptap-extensions/color';
 import {ClassBasedMark, ClassBasedNode} from '../tiptap-extensions/classbased';
 import {StyleHelpers} from './helpers';
-import {FormDialog} from './FormDialog';
+import {FormDialogBase} from './FormDialog';
 import {parse} from '../build/function-code';
 import styles from './RichtextArea.scss';
 
@@ -777,7 +777,7 @@ interface FormDialogOptions {
 }
 
 
-class RichtextFormDialog extends FormDialog {
+class RichtextFormDialog extends FormDialogBase {
 	private readonly richtext: RichtextArea;
 	private readonly inputElements = new Array<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>();
 	private textSelectionField: HTMLInputElement|null = null;
