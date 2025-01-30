@@ -32,6 +32,9 @@ class FormsetErrorList(ErrorList):
             'client_messages': self.client_messages,
         }
 
+    def __repr__(self):
+        return f'<{self.__class__.__name__}: {[item for item in self]} {self.client_messages}>'
+
 
 class HolderMixin:
     ignore_marked_for_removal = getattr(settings, 'FORMSET_IGNORE_MARKED_FOR_REMOVAL', False)
