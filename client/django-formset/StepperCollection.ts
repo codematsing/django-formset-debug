@@ -8,9 +8,9 @@ import {parse} from '../build/tag-attributes';
 class StepperStep {
 	private readonly collection: StepperCollection;
 	private readonly listItem: HTMLLIElement;
-	private readonly formCollection: HTMLElement;
 	private readonly path: string[];
 	private visited = false;
+	public readonly formCollection: HTMLElement;
 	public readonly induceActivate: Function;
 
 	constructor(collection: StepperCollection, listItem: HTMLLIElement, formCollection: HTMLElement) {
@@ -63,6 +63,10 @@ class StepperStep {
 		this.collection.steps.forEach(step => {
 			step.formCollection.ariaCurrent = step.listItem.ariaCurrent = step === this ? 'step' : null;
 		});
+		this.setAsVisited();
+	}
+
+	public setAsVisited() {
 		this.visited = true;
 		this.listItem.classList.add('visited');
 	}
@@ -98,6 +102,14 @@ class StepperCollection implements Inducible {
 			return;
 		this.formset = event.detail.formset as DjangoFormset;
 		this.formset.registerInducer(this, this.updateOperability);
+
+		let previousStep: StepperStep|null = null;
+		for (const step of this.steps) {
+			if (previousStep && Object.values(previousStep.formCollection.querySelectorAll('form')).every(form => form.checkValidity())) {
+				step.setAsVisited();
+			}
+			previousStep = step;
+		}
 	};
 
 	updateOperability(...args: any[]){
