@@ -37,6 +37,7 @@ Django's counterparts.
 	dual-selector
 	dialog-forms
 	dialog-model-forms
+	form-stepper
 	richtext
 	richtext-extensions
 	slug-input
