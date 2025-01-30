@@ -32,6 +32,8 @@ class BoundField(boundfield.BoundField):
 
     @property
     def errors(self):
+        if isinstance(self.field, Activator):
+            return ''  # submitted value of an Activator can not be validated, hence errors are not applicable
         errors = self.form.errors.get(self.name, self.form.error_class())
         errors.client_messages = self._get_client_messages()
         return errors
@@ -61,18 +63,10 @@ class BoundField(boundfield.BoundField):
             renderer=self.form.renderer,
         )
 
-    def build_widget_attrs(self, attrs, widget=None):
-        attrs = super().build_widget_attrs(attrs, widget)
-        if hasattr(self.form, 'form_id'):
-            attrs['form'] = self.form.form_id
-        if hasattr(self.field, 'regex'):
-            attrs['pattern'] = self.field.regex.pattern
-        if isinstance(self.field, JSONField):
-            attrs['use_json'] = True
+    def label_tag(self, **kwargs):
         if isinstance(self.field, Activator):
-            label = self.name.replace('_', ' ').title() if self.field.label is None else self.field.label
-            attrs['label'] = label  # remember label for ButtonWidget.get_context()
-        return attrs
+            return ''  # label of an Activator is placed inside its widget
+        return super().label_tag(**kwargs)
 
     def css_classes(self, extra_classes=None):
         """
@@ -95,6 +89,19 @@ class BoundField(boundfield.BoundField):
         else:
             extra_classes.add(field_css_classes)
         return super().css_classes(extra_classes)
+
+    def build_widget_attrs(self, attrs, widget=None):
+        attrs = super().build_widget_attrs(attrs, widget)
+        if hasattr(self.form, 'form_id'):
+            attrs['form'] = self.form.form_id
+        if hasattr(self.field, 'regex'):
+            attrs['pattern'] = self.field.regex.pattern
+        if isinstance(self.field, JSONField):
+            attrs['use_json'] = True
+        if isinstance(self.field, Activator):
+            label = self.name.replace('_', ' ').title() if self.field.label is None else self.field.label
+            attrs['label'] = label  # remember label for ButtonWidget.get_context()
+        return attrs
 
     @cached_property
     def widget_type(self):
