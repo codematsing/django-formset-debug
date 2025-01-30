@@ -1,3 +1,7 @@
+body {
+	background-color: light-dark(white, black);
+	color: light-dark(black, white);
+	}
 /* use this stylesheet to see nesting levels on collections and their form validation status */
 .dj-form {
 	padding: 0.5rem;
