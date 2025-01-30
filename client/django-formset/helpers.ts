@@ -57,7 +57,7 @@ export namespace StyleHelpers {
 		]);
 	}
 
-	function stylesHaveChanged(){
+	function stylesHaveChanged() {
 		mediaQueryStyles.forEach(([styleModifiers, withPseudoStyles]) => {
 			if (withPseudoStyles) {
 				attachPseudoStyles();
