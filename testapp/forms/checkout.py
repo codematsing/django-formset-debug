@@ -17,7 +17,7 @@ class ContactForm(Form):
     next = Activator(
         label="Next",
         widget=Button(
-            action='submitPartial -> activate("apply")',
+            action='submitPartial -> activate("apply") !~ scrollToError',
             button_variant=ButtonVariant.SECONDARY,
             icon_path='formset/icons/chevron-right.svg',
             attrs={'class': 'float-end'},
@@ -50,7 +50,7 @@ class ShippingForm(Form):
     next = Activator(
         label="Next",
         widget=Button(
-            action='submitPartial -> activate("apply")',
+            action='submitPartial -> activate("apply") !~ scrollToError',
             button_variant=ButtonVariant.SECONDARY,
             icon_path='formset/icons/chevron-right.svg',
             attrs={'class': 'float-end'},
@@ -84,7 +84,7 @@ class PaymentForm(Form):
     submit = Activator(
         label="Submit",
         widget=Button(
-            action='submit -> reload',
+            action='submit -> reload !~ scrollToError',
             button_variant=ButtonVariant.PRIMARY,
             attrs={'class': 'float-end'},
         )
