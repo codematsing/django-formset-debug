@@ -203,3 +203,41 @@ def test_steps_already_visited(page, viewname):
     expect(collections[1]).to_be_visible()
     expect(collections[2]).not_to_have_attribute('aria-current', r'.*')
     expect(collections[2]).not_to_be_visible()
+
+
+@pytest.mark.urls(__name__)
+@pytest.mark.parametrize('viewname', ['prefilled_stepper'])
+def test_steps_partially_valid_then_invalid(page, viewname):
+    stepper_collection = page.locator('django-stepper-collection')
+    step_items = stepper_collection.locator('ul.stepper-horizontal > li.stepper-step').all()
+    collections = stepper_collection.locator('django-form-collection').all()
+    expect(step_items[0]).to_have_class('stepper-step visited')
+    expect(step_items[1]).not_to_have_attribute('aria-current', r'.*')
+    expect(step_items[1]).to_have_class('stepper-step visited')
+    expect(step_items[2]).not_to_have_attribute('aria-current', r'.*')
+    expect(step_items[2]).to_have_class('stepper-step')
+    expect(collections[0]).to_have_attribute('aria-current', 'step')
+    expect(collections[0]).to_be_visible()
+    step_items[1].locator('.stepper-head').click()
+    expect(collections[1]).to_be_visible()
+    collections[1].locator('input[name="street"]').fill("123 Main St")
+    collections[1].locator('input[name="postal_code"]').fill("12345")
+    collections[1].locator('input[name="city"]').fill("Springfield")
+    collections[1].locator('button[name="next"]').click()
+    expect(step_items[0]).to_have_class('stepper-step visited')
+    expect(step_items[1]).to_have_class('stepper-step visited')
+    expect(step_items[2]).to_have_class('stepper-step visited')
+    expect(collections[2]).to_be_visible()
+
+    # return to first step and make the first step invalid
+    step_items[0].locator('.stepper-head').click()
+    expect(collections[0]).to_be_visible()
+    collections[0].locator('input[name="last_name"]').fill("")
+
+    # then the second and third step should be inactive and impossible to reach
+    step_items[1].locator('.stepper-head').click()
+    expect(collections[1]).not_to_be_visible()
+    expect(collections[0]).to_be_visible()
+    expect(step_items[0]).to_have_class('stepper-step visited')
+    expect(step_items[1]).to_have_class('stepper-step')
+    expect(step_items[2]).to_have_class('stepper-step')

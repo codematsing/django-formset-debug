@@ -20,6 +20,7 @@ class StepperStep {
 		this.path = listItem.getAttribute('prefix')?.split('.') ?? [];
 		this.induceActivate = this.evalInducer(listItem, (...args: any[]) => this.activateStep(...args));
 		this.listItem.querySelector('.stepper-head')?.addEventListener('click', this.activateVisited);
+		formCollection.addEventListener('change', this.collectionChanged);
 	}
 
 	private evalInducer(element: HTMLElement, inducer: Function) : Function {
@@ -56,6 +57,20 @@ class StepperStep {
 	private activateVisited = (event: Event) => {
 		if (this.visited) {
 			this.activateStep();
+		}
+	};
+
+	private collectionChanged = (event: Event) => {
+		let firstInvalidStep: StepperStep|null = null;
+		for (const step of this.collection.steps) {
+			if (step.visited) {
+				if (firstInvalidStep) {
+					step.visited = false;
+					step.listItem.classList.remove('visited');
+				} else if (Object.values(step.formCollection.querySelectorAll('form')).some(form => !form.checkValidity())) {
+					firstInvalidStep = step;
+				}
+			}
 		}
 	};
 
