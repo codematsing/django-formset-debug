@@ -28,7 +28,6 @@ against a customized implementation, instead we must extend it using a `one-to-o
 	        on_delete=models.CASCADE,
 	        related_name='extend_user',
 	    )
-
 	    phone_number = models.CharField(
 	        verbose_name="Phone Number",
 	        max_length=25,

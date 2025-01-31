@@ -214,8 +214,18 @@ phone numbers from different countries.
 Implementation Details
 ======================
 
-This ``django-phone-number`` widget is implemented using the npm package libphonenumber-js_. This
-library implements a database with all countries, their landline- and mobile phone prefixes, and
-their formatting conventions. It is a port of Google's libphonenumber library to JavaScript.
+The browser implementation of this ``PhoneNumberInput`` widget uses the Node package
+libphonenumber-js_. This library provides a database with all countries, their landline- and
+mobile phone prefixes, and their formatting conventions. It is a port of Google's libphonenumber_
+library to JavaScript.
 
-.. _libphonenumber-js: https://github.com/catamphetamine/libphonenumber-js
+The PIP package phonenumbers_ is used by the server side implementation. It is used to format the
+phone numbers when rendering them in Django templates. This is a Python port of said Google's
+libphonenumber library.
+
+.. _libphonenumber: https://github.com/google/libphonenumber
+.. _libphonenumber-js: https://www.npmjs.com/package/libphonenumber-js
+.. _phonenumbers: https://pypi.org/project/phonenumbers/
+
+.. note:: These two libraries are are updated quite often to reflect the changes made to the
+	worldwide telephone system, so prepare your project for regular updates.
