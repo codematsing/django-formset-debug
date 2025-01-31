@@ -1,5 +1,11 @@
 ## Changes
 
+- 1.7
+  * Main feature of this release: Add component ``StepperCollection`` allowing to fill out forms
+    step by step.
+  * Fix #192: In `RichtextArea`, the border was not rendered showing invalid state, if this field
+    remained untouched with the form being submitted.
+
 - 1.6.1
   * Fix: `DatePicker` and `DateCalendar` sometimes had an offset of one day, if timezone caused a
     shift after midnight.
