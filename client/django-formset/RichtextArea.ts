@@ -1172,6 +1172,16 @@ class RichtextArea {
 		this.textAreaElement.classList.add('dj-concealed');
 	}
 
+	private validate() {
+		if (this.textAreaElement.required && this.editor.getText().length === 0) {
+			this.wrapperElement.classList.remove('valid');
+			this.wrapperElement.classList.add('invalid');
+		} else {
+			this.wrapperElement.classList.add('valid');
+			this.wrapperElement.classList.remove('invalid');
+		}
+	}
+
 	private focused = () => {
 		this.wrapperElement.classList.add('focused');
 		this.textAreaElement.dispatchEvent(new Event('focus'));
@@ -1186,13 +1196,7 @@ class RichtextArea {
 	private blurred = () => {
 		this.registeredActions.forEach(action => action.deactivate());
 		this.wrapperElement.classList.remove('focused');
-		if (this.textAreaElement.required && this.editor.getText().length === 0) {
-			this.wrapperElement.classList.remove('valid');
-			this.wrapperElement.classList.add('invalid');
-		} else {
-			this.wrapperElement.classList.add('valid');
-			this.wrapperElement.classList.remove('invalid');
-		}
+		this.validate();
 		this.textAreaElement.dispatchEvent(new Event('blur'));
 	};
 
@@ -1218,9 +1222,12 @@ class RichtextArea {
 			}
 			chain.run();
 		}
+		this.wrapperElement.classList.remove('valid', 'invalid');
 	};
 
-	private formSubmitted = () => {};
+	private formSubmitted = () => {
+		this.validate();
+	};
 
 	private attributesChanged(mutationsList: Array<MutationRecord>) {
 		for (const mutation of mutationsList) {

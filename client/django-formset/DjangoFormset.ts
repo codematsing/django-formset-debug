@@ -1258,6 +1258,7 @@ class DjangoForm {
 
 	setSubmitted() {
 		this.fieldGroups.forEach(fieldGroup => fieldGroup.setSubmitted());
+		this.element.dispatchEvent(new Event('submitted'));
 	}
 
 	validate() {
