@@ -32,29 +32,32 @@
 		padding: 0.125rem 0.25rem;
 		color: var(--richtext-menu-color);
 
-		[role="group"] {
-			padding: 0;
+		@mixin separator {
+			display: inline-flex;
 
-			&.has-sibling::after {
+			&::after {
 				content: "";
-				display: inline-block;
+				display: block;
 				opacity: var(--richtext-button-opacity);
 				border-right: 1px solid var(--richtext-menu-color);
-				vertical-align: middle;
+				align-self: center;
 				height: 24px;
 				width: 1px;
 				margin: 0 1px;
 			}
 		}
 
+		[role="group"] {
+			padding: 0;
+			display: flex;
+
+			&.has-sibling {
+				@include separator;
+			}
+		}
+
 		[role="separator"] {
-			display: inline-block;
-				opacity: var(--richtext-button-opacity);
-				border-right: 1px solid var(--richtext-menu-color);
-				vertical-align: middle;
-				height: 24px;
-				width: 1px;
-				margin: 0 1px;
+			@include separator;
 		}
 
 		button {
