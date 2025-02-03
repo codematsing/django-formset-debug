@@ -29,7 +29,7 @@ console_command = '/web/manage.py shell'
   processes = ['app']
 
 [[vm]]
-  memory = '512mb'
+  memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
 
