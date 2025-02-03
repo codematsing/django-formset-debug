@@ -28,12 +28,13 @@
 		flex: 0 1 auto;
 		display: flex;
 		flex-wrap: wrap;
+		position: absolute;
 		inset: 0 0 auto 0;
 		padding: 0.125rem 0.25rem;
 		color: var(--richtext-menu-color);
 
 		@mixin separator {
-			display: inline-flex;
+			display: flex;
 
 			&::after {
 				content: "";
@@ -61,7 +62,7 @@
 		}
 
 		button {
-			display: inline-block;
+			display: block;
 			text-align: center;
 			text-decoration: none;
 			vertical-align: middle;
@@ -168,6 +169,8 @@
 	}
 
 	.ProseMirror {
+		position: absolute;
+		inset: auto 0 0 0;
 		border: none;
 		flex: 1 0 auto;
 		word-wrap: break-word;
