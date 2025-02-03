@@ -1032,13 +1032,13 @@ class RichtextArea {
 	constructor(wrapperElement: HTMLElement, textAreaElement: HTMLTextAreaElement) {
 		this.wrapperElement = wrapperElement;
 		this.textAreaElement = textAreaElement;
-		this.menubarElement = wrapperElement.querySelector('[role="menubar"]');
+		this.menubarElement = wrapperElement.querySelector(':scope > [role="menubar"]');
 		this.useJson = Object.hasOwn(this.textAreaElement.dataset, 'content');
 		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
 			this.transferStyles();
 		}
 		this.attributesObserver = new MutationObserver(mutationsList => this.attributesChanged(mutationsList));
-		this.resizeObserver = new ResizeObserver(() => this.wrapMenubar());
+		this.resizeObserver = new ResizeObserver(() => this.adjustMenubarLayout());
 		this.initializedPromise = this.initialize();
 	}
 
@@ -1060,7 +1060,7 @@ class RichtextArea {
 					// to prevent flickering when loading the page, the visibility of the menubar is hidden
 					this.menubarElement.style.visibility = '';
 					this.resizeObserver.observe(this.menubarElement);
-					this.wrapMenubar();
+					this.adjustMenubarLayout();
 				}
 				this.isInitialized = true;
 				resolve();
@@ -1068,13 +1068,17 @@ class RichtextArea {
 		});
 	}
 
-	private wrapMenubar() {
-		this.menubarElement?.querySelectorAll('[role="group"]').forEach(element => {
+	private adjustMenubarLayout() {
+		// add class 'has-sibling' to all groups that have a sibling group on their right of the same row
+		this.menubarElement?.querySelectorAll(':scope > [role="group"]').forEach(element => {
 			if (!(element instanceof HTMLElement) || !(element.nextElementSibling instanceof HTMLElement))
 				return;
 			const sameRow = element.offsetLeft < element.nextElementSibling.offsetLeft;
 			element.classList.toggle('has-sibling', sameRow);
 		});
+		const menubarHeight = this.menubarElement?.getBoundingClientRect().height ?? 0;
+		this.wrapperElement.style.setProperty('min-height', `${Math.round(menubarHeight + 80)}px`);
+		this.editor.view.dom.style.setProperty('top', `${menubarHeight + 1}px`);
 	}
 
 	private async createEditor(wrapperElement: HTMLElement, content: any) : Promise<Editor> {
@@ -1247,7 +1251,6 @@ class RichtextArea {
 		const sheet = declaredStyles.sheet;
 
 		let loaded = false;
-		const buttonGroupHeight = this.menubarElement?.getBoundingClientRect().height ?? 0;
 		for (let index = 0; index < sheet.cssRules.length; index++) {
 			const cssRule = sheet.cssRules.item(index) as CSSStyleRule;
 			let extraStyles: string;
@@ -1257,7 +1260,6 @@ class RichtextArea {
 						'height', 'background-image', 'border-style', 'border-width', 'border-radius', 'box-shadow',
 						'outline', 'resize',
 					]);
-					extraStyles = extraStyles.concat(`min-height:${buttonGroupHeight * 2}px;`);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					loaded = true;
 					break;
@@ -1283,7 +1285,6 @@ class RichtextArea {
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
 						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight', 'letter-spacing',
 						'white-space', 'line-height', 'overflow', 'padding']);
-					extraStyles = extraStyles.concat(`top:${buttonGroupHeight + 1}px;`);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case `${this.baseSelector} [role="menubar"]`:
