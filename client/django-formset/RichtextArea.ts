@@ -183,8 +183,7 @@ namespace controls {
 		protected readonly extensions = [Subscript];
 
 		clicked(editor: Editor) {
-			editor.chain().focus().unsetSuperscript().run();
-			editor.chain().focus().toggleSubscript().run();
+			editor.chain().focus().unsetSuperscript().toggleSubscript().run();
 			this.activate(editor);
 		}
 	}
@@ -193,8 +192,7 @@ namespace controls {
 		protected readonly extensions = [Superscript];
 
 		clicked(editor: Editor) {
-			editor.chain().focus().unsetSubscript().run();
-			editor.chain().focus().toggleSuperscript().run();
+			editor.chain().focus().unsetSubscript().toggleSuperscript().run();
 			this.activate(editor);
 		}
 	}
@@ -1186,8 +1184,6 @@ class RichtextArea {
 		}
 	}
 
-	private focused = () => {
-		this.wrapperElement.classList.add('focused');
 		this.textAreaElement.dispatchEvent(new Event('focus'));
 	};
 
