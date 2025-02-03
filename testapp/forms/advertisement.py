@@ -15,49 +15,106 @@ initial_html = """
 """
 
 initial_json = {
-  "ad_text": {
-    "type": "doc",
-    "content": [
-      {
-        "type": "paragraph",
+    "ad_text": {
+        "type": "doc",
         "content": [
-          {
-            "type": "text",
-            "text": "Morbi odio eros, volutpat ut pharetra vitae, lobortis sed nibh. Prima luce, cum quibus mons aliud consensu ab eo. Unam incolunt Belgae, aliam "
-          },
-          {
-            "type": "text",
-            "marks": [
-              {
-                "type": "custom_hyperlink",
-                "attrs": {
-                  "href": "http://example.org"
-                }
-              }
-            ],
-            "text": "Aquitani"
-          },
-          {
-            "type": "text",
-            "text": ", tertiam. "
-          },
-          {
-            "type": "text",
-            "marks": [
-              {
-                "type": "bold"
-              }
-            ],
-            "text": "Contra legem facit qui id facit quod lex prohibet."
-          },
-          {
-            "type": "text",
-            "text": " Petierunt uti sibi concilium totius Galliae in diem certam indicere."
-          }
+            {
+                "type": "paragraph",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Morbi odio eros, volutpat ut pharetra vitae, lobortis sed nibh. Prima luce, cum quibus mons aliud consensu ab eo. Unam incolunt Belgae, aliam "
+                    },
+                    {
+                        "type": "text",
+                        "marks": [
+                            {
+                                "type": "custom_hyperlink",
+                                "attrs": {
+                                    "href": "http://example.org",
+                                }
+                            }
+                        ],
+                        "text": "Aquitani"
+                    },
+                    {
+                        "type": "text",
+                        "text": ", tertiam."
+                    },
+                    {
+                        "type": "footnote",
+                        "attrs": {
+                            "content": {
+                                "type": "doc",
+                                "content": [
+                                    {
+                                        "type": "paragraph",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "marks": [
+                                                    {
+                                                        "type": "italic"
+                                                    }
+                                                ],
+                                                "text": "Belgae "
+                                            },
+                                            {
+                                                "type": "text",
+                                                "marks": [
+                                                    {
+                                                        "type": "simple_link",
+                                                        "attrs": {
+                                                            "href": "http://example.org"
+                                                        }
+                                                    },
+                                                    {
+                                                        "type": "italic"
+                                                    }
+                                                ],
+                                                "text": "Aquitani"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "marks": [
+                                                    {
+                                                        "type": "italic"
+                                                    }
+                                                ],
+                                                "text": ", tertiam."
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "paragraph"
+                                    }
+                                ]
+                            },
+                            "role": "note"
+                        }
+                    }
+                ]
+            },
+            {
+                "type": "paragraph",
+                "content": [
+                    {
+                        "type": "text",
+                        "marks": [
+                            {
+                                "type": "bold"
+                            }
+                        ],
+                        "text": "Contra legem facit qui id facit quod lex prohibet."
+                    },
+                    {
+                        "type": "text",
+                        "text": " Petierunt uti sibi concilium totius Galliae in diem certam indicere."
+                    }
+                ]
+            }
         ]
-      }
-    ]
-  }
+    }
 }
 
 
