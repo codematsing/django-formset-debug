@@ -11,7 +11,7 @@ class BlogModelForm(models.ModelForm):
         model = BlogModel
         fields = '__all__'
         widgets = {
-            'text': RichTextarea(control_elements=[
+            'body': RichTextarea(control_elements=[
                 controls.Heading([1,2,3]),
                 controls.Bold(),
                 controls.Blockquote(),
