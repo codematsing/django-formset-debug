@@ -1033,7 +1033,7 @@ class RichtextArea {
 		this.textAreaElement = textAreaElement;
 		this.menubarElement = wrapperElement.querySelector(':scope > [role="menubar"]');
 		this.useJson = Object.hasOwn(this.textAreaElement.dataset, 'content');
-		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+		if (!StyleHelpers.stylesAreInstalled(this.baseSelector) && this.wrapperElement.checkVisibility()) {
 			this.transferStyles();
 		}
 		this.attributesObserver = new MutationObserver(mutationsList => this.attributesChanged(mutationsList));
