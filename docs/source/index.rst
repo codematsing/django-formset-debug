@@ -63,11 +63,3 @@ License
 =======
 
 **django-formset** is licensed according to the MIT public license.
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

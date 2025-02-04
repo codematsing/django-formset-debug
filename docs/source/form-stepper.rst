@@ -123,8 +123,8 @@ The last form contains an activator labeled "Submit" with the action ``submit ->
 the server and processed there as usual.
 
 .. note:: In this example the use of the ``intercept`` actions is just for debugging purpose. It
-	just is used to show the submitted content in this application. A real world application would
-	not implement this action. 
+	is used to show the submitted content in this application. A real world application would not
+	implement this action. 
 
 The stepper navigation is rendered as a list of bullets. These bullets are clickable and allow the
 user to jump to any step as long as the previous steps are valid. The current step is highlighted
