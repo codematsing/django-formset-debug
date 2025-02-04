@@ -1,5 +1,13 @@
 ## Changes
 
+- 1.7.1
+  * Stepper was not invalidated if invalid data was filled into previous form. 
+  * Richtext Area (fix #198): Styles of separator in menubar of RichtextArea were not aligned properly.
+  * Richtext Area: Fix scoping problem with nested Richtext editors.
+  * Richtext Area: Make scrollbar appear in contenteditable only.
+  * Richtext Area: Upgrade to TipTap version 2.11.5.
+  * Richtext Area (fix #191): Do not blur wrapper element if clicked element is part of it.
+
 - 1.7
   * Main feature of this release: Add component ``StepperCollection`` allowing to fill out forms
     step by step.
