@@ -80,7 +80,6 @@ abstract class Action {
 
 	activate(editor: Editor) {
 		this.button.classList.toggle('active', editor.isActive(this.name));
-		editor.commands.focus();
 	}
 
 	deactivate() {
@@ -157,7 +156,7 @@ namespace controls {
 		protected readonly extensions = [Bold];
 
 		clicked(editor: Editor) {
-			editor.commands.toggleBold();
+			editor.chain().focus().toggleBold().run();
 			this.activate(editor);
 		}
 	}
@@ -166,7 +165,7 @@ namespace controls {
 		protected readonly extensions = [Italic];
 
 		clicked(editor: Editor) {
-			editor.commands.toggleItalic();
+			editor.chain().focus().toggleItalic().run();
 			this.activate(editor);
 		}
 	}
@@ -175,7 +174,7 @@ namespace controls {
 		protected readonly extensions = [Strike];
 
 		clicked(editor: Editor) {
-			editor.commands.toggleStrike();
+			editor.chain().focus().toggleStrike().run();
 			this.activate(editor);
 		}
 	}
@@ -184,7 +183,7 @@ namespace controls {
 		protected readonly extensions = [Subscript];
 
 		clicked(editor: Editor) {
-			editor.chain().unsetSuperscript().toggleSubscript().run();
+			editor.chain().focus().unsetSuperscript().toggleSubscript().run();
 			this.activate(editor);
 		}
 	}
@@ -193,7 +192,7 @@ namespace controls {
 		protected readonly extensions = [Superscript];
 
 		clicked(editor: Editor) {
-			editor.chain().unsetSubscript().toggleSuperscript().run();
+			editor.chain().focus().unsetSubscript().toggleSuperscript().run();
 			this.activate(editor);
 		}
 	}
@@ -202,7 +201,7 @@ namespace controls {
 		protected readonly extensions = [Underline];
 
 		clicked(editor: Editor) {
-			editor.commands.toggleUnderline();
+			editor.chain().focus().toggleUnderline().run();
 			this.activate(editor);
 		}
 	}
@@ -211,7 +210,7 @@ namespace controls {
 		protected readonly extensions = [BulletList, ListItem];
 
 		clicked(editor: Editor) {
-			editor.commands.toggleBulletList();
+			editor.chain().focus().toggleBulletList().run();
 			this.activate(editor);
 		}
 	}
@@ -220,7 +219,7 @@ namespace controls {
 		protected readonly extensions = [Blockquote];
 
 		clicked(editor: Editor) {
-			editor.commands.toggleBlockquote();
+			editor.chain().focus().toggleBlockquote().run();
 			this.activate(editor);
 		}
 	}
@@ -229,7 +228,7 @@ namespace controls {
 		protected readonly extensions = [CodeBlock];
 
 		clicked(editor: Editor) {
-			editor.commands.toggleCodeBlock();
+			editor.chain().focus().toggleCodeBlock().run();
 			this.activate(editor);
 		}
 	}
@@ -238,7 +237,7 @@ namespace controls {
 		// extension for HardBreak is always loaded
 
 		clicked(editor: Editor) {
-			editor.commands.setHardBreak();
+			editor.chain().focus().setHardBreak().run();
 			this.activate(editor);
 		}
 	}
@@ -329,9 +328,9 @@ namespace controls {
 				if (element.role === 'menuitem') {
 					const color = this.extractColor(element);
 					if (color) {
-						editor.commands.setColor(color);
+						editor.chain().focus().setColor(color).run();
 					} else {
-						editor.commands.unsetColor();
+						editor.chain().focus().unsetColor().run();
 					}
 					this.activate(editor);
 					this.toggleMenu(editor, false);
@@ -428,9 +427,9 @@ namespace controls {
 				if (element.role === 'menuitem') {
 					const cssClass = this.extractClass(element);
 					if (cssClass) {
-						editor.commands.setMarkClass(this.name, cssClass);
+						editor.chain().focus().setMarkClass(this.name, cssClass).run();
 					} else {
-						editor.commands.unsetMarkClass(this.name);
+						editor.chain().focus().unsetMarkClass(this.name).run();
 					}
 					this.activate(editor);
 					this.toggleMenu(editor, false);
@@ -464,7 +463,7 @@ namespace controls {
 			while (element) {
 				if (element.role === 'menuitem') {
 					const cssClass = this.extractClass(element);
-					editor.commands.toggleNodeClass(cssClass, this.allowedClasses);
+					editor.chain().focus().toggleNodeClass(cssClass, this.allowedClasses).run();
 					this.activate(editor);
 					this.toggleMenu(editor, false);
 					break;
@@ -488,9 +487,9 @@ namespace controls {
 
 		clicked(editor: Editor) {
 			if (editor.isActive({textIndent: this.indent})) {
-				editor.commands.unsetTextIndent();
+				editor.chain().focus().unsetTextIndent().run();
 			} else {
-				editor.commands.setTextIndent(this.indent);
+				editor.chain().focus().setTextIndent(this.indent).run();
 			}
 			this.activate(editor);
 		}
@@ -521,11 +520,11 @@ namespace controls {
 
 		clicked(editor: Editor) {
 			if (this.indent === 'increase') {
-				editor.commands.increaseTextMargin();
+				editor.chain().focus().increaseTextMargin().run();
 			} else if (this.indent === 'decrease') {
-				editor.commands.decreaseTextMargin();
+				editor.chain().focus().decreaseTextMargin().run();
 			} else {
-				editor.commands.unsetTextMargin();
+				editor.chain().focus().unsetTextMargin().run();
 			}
 			this.activate(editor);
 		}
@@ -545,7 +544,7 @@ namespace controls {
 		protected readonly extensions = [OrderedList, ListItem];
 
 		clicked(editor: Editor) {
-			editor.commands.toggleOrderedList();
+			editor.chain().focus().toggleOrderedList().run();
 			this.activate(editor);
 		}
 	}
@@ -554,13 +553,13 @@ namespace controls {
 		protected readonly extensions = [HorizontalRule];
 
 		clicked(editor: Editor) {
-			editor.chain().setHorizontalRule().focus().run();
+			editor.chain().focus().setHorizontalRule().run();
 		}
 	}
 
 	export class ClearFormatAction extends Action {
 		clicked(editor: Editor) {
-			editor.chain().clearNodes().unsetAllMarks().run();
+			editor.chain().focus().clearNodes().unsetAllMarks().run();
 			this.activate(editor);
 		}
 	}
@@ -655,13 +654,13 @@ namespace controls {
 				if (this.dropdownItems.length === 0) {
 					if (element === this.button) {
 						const level = this.extractLevel(element);
-						editor.commands.setHeading({level: level});
+						editor.chain().focus().setHeading({level: level}).run();
 						this.activate(editor);
 						break;
 					}
 				} else if (element.role === 'menuitem') {
 					const level = this.extractLevel(element);
-					editor.commands.setHeading({level: level});
+					editor.chain().focus().setHeading({level: level}).run();
 					this.activate(editor);
 					this.toggleMenu(editor, false);
 					const icon = element.querySelector('svg')?.cloneNode(true);
@@ -751,7 +750,7 @@ namespace controls {
 			while (element) {
 				if (element.role === 'menuitem') {
 					const alignment = this.extractAlignment(element);
-					editor.commands.setTextAlign(alignment);
+					editor.chain().focus().setTextAlign(alignment).run();
 					this.activate(editor);
 					this.toggleMenu(editor, false);
 					const icon = element.querySelector('svg')?.cloneNode(true);
@@ -841,9 +840,9 @@ class RichtextFormDialog extends FormDialogBase {
 							return false;
 						const viewDesc = event.target.pmViewDesc;
 						if (viewDesc) {
-							self.richtext.editor.chain()
+							self.richtext.editor.chain().focus()
 								.setTextSelection({from: viewDesc.posAtStart, to: viewDesc.posAtEnd})
-								.focus().run();
+								.run();
 						}
 						self.openPrefilledDialog(attributes);
 						return true;
@@ -977,29 +976,29 @@ class RichtextFormDialog extends FormDialogBase {
 
 	private applyMarkAttributes(editor: Editor, attributes: Object) {
 		const selection = editor.view.state.selection;
-		const markedEditor = editor.chain()
+		const markedEditor = editor.chain().focus()
 			.extendMarkRange(this.extension)
 			.setMark(this.extension, attributes);
 		if (this.textSelectionField) {
 			markedEditor.insertContentAt({from: selection.from, to: selection.to}, this.textSelectionField.value);
 		}
-		markedEditor.focus().run();
+		markedEditor.run();
 	}
 
 	private revertMarkAttributes(editor: Editor) {
-		editor.chain()
+		editor.chain().focus()
 			.extendMarkRange(this.extension)
 			.unsetMark(this.extension, {extendEmptyMarkRange: true})
-			.focus().run();
+			.run();
 	}
 
 	private applyNodeAttributes(editor: Editor, options: Object) {
-		editor.chain().insertContent({type: this.extension, attrs: options}).focus().run();
+		editor.chain().focus().insertContent({type: this.extension, attrs: options}).run();
 	}
 
 	private revertNodeAttributes(editor: Editor) {
 		const {from, to} = editor.view.state.selection;
-		editor.chain().deleteRange({from, to}).focus().run();
+		editor.chain().focus().deleteRange({from, to}).run();
 	}
 
 	public updateOperability(...args: any[]) {
