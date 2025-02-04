@@ -4,7 +4,7 @@ import isEqual from 'lodash.isequal';
 import isString from 'lodash.isstring';
 import getDataValue from 'lodash.get';
 import {arrow, computePosition} from '@floating-ui/dom';
-import {Editor, Extension, Mark, Node, markPasteRule, mergeAttributes, getAttributes, JSONContent} from '@tiptap/core';
+import {Editor, EditorEvents, Extension, Mark, Node, markPasteRule, mergeAttributes, getAttributes, JSONContent} from '@tiptap/core';
 import {Plugin, PluginKey} from '@tiptap/pm/state';
 import Blockquote from '@tiptap/extension-blockquote';
 import Bold from '@tiptap/extension-bold';
@@ -1185,6 +1185,8 @@ class RichtextArea {
 		}
 	}
 
+	private focused = (event: EditorEvents['focus']) => {
+		this.wrapperElement.classList.add('focused');
 		this.textAreaElement.dispatchEvent(new Event('focus'));
 	};
 
@@ -1194,7 +1196,14 @@ class RichtextArea {
 		this.textAreaElement.dispatchEvent(new Event('input'));
 	};
 
-	private blurred = () => {
+	private blurred = (event: EditorEvents['blur']) => {
+		const contains = event.event.relatedTarget instanceof Element && this.wrapperElement.contains(event.event.relatedTarget);
+		if (contains) {
+			event.event.preventDefault();
+			event.event.stopPropagation();
+			return;
+		}
+
 		this.registeredActions.forEach(action => action.deactivate());
 		this.wrapperElement.classList.remove('focused');
 		this.validate();
