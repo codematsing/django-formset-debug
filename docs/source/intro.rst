@@ -133,7 +133,8 @@ When looking at the rendered HTML code, there are a few things, which admittedly
 to us:
 
 * The ``<form>`` tag neither contains a ``method`` nor an ``action`` attribute.
-* The CSRF-token is not added to ``<django-formset>`` instead of a hidden input field.
+* The CSRF-token is added to ``<django-formset>`` instead of using an
+  ``<input type="hidden" value="…" />`` field.
 * The "Submit" and "Reset" buttons are located outside of the ``<form>`` element.
 
 .. note:: When using Django's internal formset_, the field names have to be prefixed with

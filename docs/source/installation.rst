@@ -122,9 +122,9 @@ If you're wondering where **django-formset** keeps the styles for all the widget
 here is a short explanation: This library doesn't need any framework specific style sheets, instead
 **django-formset** relies on the styling definitions of the underlying CSS framework rather than
 imposing their own styles on each component shipped with this library. These styles are extracted
-from the existing HTML elements such as ``<input>``, ``<select>``, etc. They then are applied to the
-custom elements of the web components. This is why this library adopts itself to the given CSS
-framework without the need to provide a dedicated style sheet.
+from the existing HTML elements such as ``<input …>``, ``<select …>`` and ``<textarea …>``. They
+then are applied to the custom elements of the web components. This is how this library adopts
+itself to the given CSS framework without the need to provide a dedicated style sheet.
 
 
 Customized Installation
@@ -133,11 +133,12 @@ Customized Installation
 When using the default JavaScript file ``formset/js/django-formset.js``, the code for the complete
 functionality of this project is prepared to be loaded. This means that whenever a component is
 first "seen" by the **django-formset** runtime, the corresponding JavaScript file is loaded
-dynamically. This is done to keep the initial load time of the page as short as possible. However,
-if you want to include all the JavaScript files at once, then you can do so by including the
-monolithic build named ``formset/js/django-formset.monolith.js``.
+dynamically. It is implemented that way to keep the initial load time of the page as short as
+possible. However, if you want to include all the JavaScript files at once, then you can do so by
+including the monolithic build named ``formset/js/django-formset.monolith.js``. Remember though,
+that this build is ~258kB in size (minified and gzipped) compared to the 22kB of the modular build.
 
 An alternative approach is to copy the file ``django-formset/client/django-formset.monolith.ts``
 to your own implementation and remove the parts which are not required. Then compile and bundle this
-file into your own JavaScript file. This way, you can create your own customized implementation of
-the client-side part of this **django-formset**.
+file into your own JavaScript file. By doing so, you can create your own customized implementation
+of the client-side part of this **django-formset** library.
