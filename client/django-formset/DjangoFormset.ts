@@ -402,16 +402,23 @@ class FieldGroup {
 				// input fields converted to web components may additionally validate themselves
 				element.checkValidity();
 			}
-			if (!element?.validity.valid)
+			if (!element.validity.valid)
 				break;
 		}
-		if (element && !element.validity.valid) {
-			element.dispatchEvent(new Event('invalid', {bubbles: true}));
+		if (!element)
+			throw new Error("No input element to validate.");
+
+		if (!element.validity.valid) {
 			if (element instanceof HTMLInputElement && element.type === 'file') {
 				this.validateFileInput(element, this.form.formset.showFeedbackMessages);
 			}
 		}
-		this.form.validate();
+		window.requestIdleCallback(() => {
+			if (this.form.validate() && !element.validity.valid) {
+				// in the rare occasion that the form validated but the field did not, dispatch an 'invalid' event
+				element.dispatchEvent(new Event('invalid'));
+			}
+		}, {timeout: 250});
 	}
 
 	private validateCheckboxSelectMultiple() {
@@ -965,7 +972,7 @@ class DjangoButton {
 	 * Called after all actions have been executed.
 	 */
 	private restore() {
-		window.setTimeout(() => this.restoreToInitial());
+		window.requestIdleCallback(() => this.restoreToInitial(), {timeout: 250});
 	}
 
 	private decorate(decorator: HTMLElement, ms?: number) {
@@ -1261,11 +1268,11 @@ class DjangoForm {
 		this.element.dispatchEvent(new Event('submitted'));
 	}
 
-	validate() {
-		this.formset.validate();
+	validate() : boolean {
+		return this.formset.validate();
 	}
 
-	isValid() {
+	isValid() : boolean {
 		if (this.element.noValidate)
 			return true;
 		let isValid = true;
@@ -1981,7 +1988,7 @@ export class DjangoFormset implements DjangoFormset {
 		this.inducers.push([inducer, func]);
 	}
 
-	public validate() {
+	public validate() : boolean {
 		let isValid = true;
 		for (const form of this.forms) {
 			isValid = (form.markedForRemoval || form.checkValidity()) && isValid;
