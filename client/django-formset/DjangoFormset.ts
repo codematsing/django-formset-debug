@@ -413,12 +413,10 @@ class FieldGroup {
 				this.validateFileInput(element, this.form.formset.showFeedbackMessages);
 			}
 		}
-		window.requestIdleCallback(() => {
-			if (this.form.validate() && !element.validity.valid) {
-				// in the rare occasion that the form validated but the field did not, dispatch an 'invalid' event
-				element.dispatchEvent(new Event('invalid'));
-			}
-		}, {timeout: 250});
+		if (this.form.validate() && !element.validity.valid) {
+			// the form validated but the field did not, so dispatch an 'invalid' event
+			element.dispatchEvent(new Event('invalid'));
+		}
 	}
 
 	private validateCheckboxSelectMultiple() {
@@ -1790,7 +1788,7 @@ export class DjangoFormset implements DjangoFormset {
 	public readonly showFeedbackMessages: boolean;
 	private readonly abortController = new AbortController;
 	private readonly emptyCollectionPrefixes = Array<string>(0);
-	private data = {};
+	private data: object|null = null;
 
 	constructor(formset: DjangoFormsetElement) {
 		this.element = formset;
@@ -2034,6 +2032,11 @@ export class DjangoFormset implements DjangoFormset {
 				extendBody(innerArray, relPath.slice(1));
 				entry[relPath[0]] = innerArray;
 			}
+		}
+
+		if (this.data === null) {
+			// submit an untouched formset
+			this.aggregateValues();
 		}
 
 		// Build a nested data structure (body) reflecting the shape of collections and forms
