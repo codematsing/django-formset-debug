@@ -213,25 +213,27 @@ def test_add_and_remove_collections(page, mocker, viewname):
     spy = mocker.spy(FormCollectionView, 'post')
     page.locator('django-formset').evaluate('elem => elem.submit()')
     request_body = json.loads(spy.call_args.args[1].body)
-    assert request_body == {'formset_data': {
+    expected = {'formset_data': {
         'person': {'full_name': '', 'email': ''},
         'numbers': [
             {'number': {'phone_number': '', 'label': 'home', MARKED_FOR_REMOVAL: True}},
             {'number': {'phone_number': '', 'label': 'home'}},
         ],
     }}
+    assert request_body == expected
     sleep(0.2)
     spy.assert_called()
     assert spy.spy_return.status_code == 422
     response = json.loads(spy.spy_return.content)
     is_required = ['This field is required.']
-    assert response == {
+    expected = {
         'person': {'full_name': is_required, 'email': is_required},
         'numbers': [
             {'number': {}},
             {'number': {'phone_number': is_required}},
         ],
     }
+    assert response == expected
 
 
 @pytest.mark.urls(__name__)
@@ -258,7 +260,7 @@ def test_remove_and_add_collections(page, mocker, viewname):
     spy = mocker.spy(FormCollectionView, 'post')
     page.locator('django-formset').evaluate('elem => elem.submit()')
     request_body = json.loads(spy.call_args.args[1].body)
-    assert request_body == {'formset_data': {
+    expected = {'formset_data': {
         'person': {'full_name': 'John Doe', 'email': 'john@example.com'},
         'numbers': [
             {'number': {'phone_number': '+1 234 567 8900', 'label': 'home', MARKED_FOR_REMOVAL: True}},
@@ -269,6 +271,7 @@ def test_remove_and_add_collections(page, mocker, viewname):
             {'number': {'phone_number': '+1200300400', 'label': 'work'}},
         ],
     }}
+    assert request_body == expected
     sleep(0.2)
     spy.assert_called()
     assert spy.spy_return.status_code == 200
