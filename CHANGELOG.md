@@ -1,5 +1,10 @@
 ## Changes
 
+- 1.7.2
+  * Fix: Aggregate data before submitting untouched form collections.
+  * Fix: Dispatch `Event('invalid')` for invalid fields only if form validation didn't do it during
+    validation.
+
 - 1.7.1
   * Stepper was not invalidated if invalid data was filled into previous form. 
   * Richtext Area (fix #198): Styles of separator in menubar of RichtextArea were not aligned properly.
