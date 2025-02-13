@@ -1788,7 +1788,7 @@ export class DjangoFormset implements DjangoFormset {
 	public readonly showFeedbackMessages: boolean;
 	private readonly abortController = new AbortController;
 	private readonly emptyCollectionPrefixes = Array<string>(0);
-	private data: object|null = null;
+	private data?: object;
 
 	constructor(formset: DjangoFormsetElement) {
 		this.element = formset;
@@ -2034,7 +2034,7 @@ export class DjangoFormset implements DjangoFormset {
 			}
 		}
 
-		if (this.data === null) {
+		if (this.data === undefined) {
 			// submit an untouched formset
 			this.aggregateValues();
 		}
