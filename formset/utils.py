@@ -169,7 +169,7 @@ class FormMixin(FormDecoratorMixin, HolderMixin):
 
 
 class FileFieldMixin:
-    def clean(self, value, initial):
+    def clean(self, value, initial=None):
         if isinstance(value, Path) and initial is not None:
             initial = copy.copy(initial)
             initial.name = str(value)
