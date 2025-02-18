@@ -349,3 +349,18 @@ self-contained JavaScript library compiled out of TypeScript.
 
 .. _Tom-Select: https://tom-select.js.org/
 .. _Selectize.js: https://selectize.dev/
+
+
+Adding extra Options on the Fly
+===============================
+
+In some cases, the user might not find the desired option in the list of choices. For this use-case
+the Tom-Select library offers a feature to `add new options on the fly`_. In the context of Django
+models such a feature could only be offered with limited functionality, because the user then could
+only add a single string to the referenced model.
+
+Instead, **django-formset** offers a more flexible solution. By adding a button to a collection,
+which opens a form dialog, the user can create a new instance with all required model fields.
+For details please refer to the page on :ref:`dialog-model-forms`.
+
+.. _add new options on the fly: https://tom-select.js.org/examples/create-filter/
