@@ -811,9 +811,11 @@ export class CalendarSheet extends Widget {
 		if (this.interval) {
 			query.set('interval', String(this.interval));
 		}
+		this.element.classList.add('loading');
 		const response = await fetch(`${this.endpoint}?${query.toString()}`, {
 			method: 'GET',
 		});
+		this.element.classList.remove('loading');
 		if (response.status === 200) {
 			this.element.innerHTML = await response.text();
 			if (this.settings.withRange) {
