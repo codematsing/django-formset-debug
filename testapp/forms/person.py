@@ -39,7 +39,7 @@ class PersonForm(SimplePersonForm):
         return cd
 
 
-class PersonFormBootstrapRenderer(FormMixin, PersonForm):
+class BootstrapRenderedPersonForm(FormMixin, PersonForm):
     """
     This form class shows how to use a custom renderer. The form then can be rendered using ``{{ form }}``
     """

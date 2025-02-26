@@ -52,7 +52,7 @@ from testapp.forms.moment import MomentBoxForm, MomentCalendarForm, MomentInputF
 from testapp.forms.moon import MoonForm, MoonCalendarRenderer
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import (
-    ButtonActionsForm, sample_person_data, ModelPersonForm, PersonForm, PersonFormBootstrapRenderer,
+    ButtonActionsForm, sample_person_data, BootstrapRenderedPersonForm, ModelPersonForm, PersonForm,
 )
 from testapp.forms.phone import PhoneForm
 from testapp.forms.poll import ModelPollForm, PollCollection
@@ -653,7 +653,7 @@ urlpatterns = [
         model=PersonModel,
     ), name='person'),
     path('person-bootstrap-renderer', DemoFormView.as_view(
-        form_class=PersonFormBootstrapRenderer,
+        form_class=BootstrapRenderedPersonForm,
         template_name='testapp/extended-form.html',
     ), name='person-bootstrap-renderer'),
     path('person-bootstrap-params', DemoFormView.as_view(
