@@ -4,6 +4,7 @@ from django.db.models.fields.files import FieldFile
 from django.forms import boundfield
 from django.forms.fields import FileField, JSONField
 from django.utils.functional import cached_property
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from formset.fields import Activator, FileFieldMixin
@@ -127,6 +128,30 @@ class BoundField(boundfield.BoundField):
         if isinstance(value, FieldFile):
             return get_file_info(value)
         return value
+
+    def __str__(self):
+        """Render this field as an HTML widget or as fieldset with widgets."""
+        fieldset_name = next(iter(self.name.split('.')))
+        if fieldset_name in self.form.declared_fieldsets:
+            if self.name in self.renderer._rendered_fields:
+                if self.renderer._rendered_fields[self.name]:
+                    return ''  # field already rendered
+            else:
+                return self._render_fieldset(fieldset_name)
+        return super().__str__()
+
+    def _render_fieldset(self, fieldset_name):
+        fieldset = self.form.declared_fieldsets[fieldset_name]
+        field_names = [f'{fieldset_name}.{field_name}' for field_name in fieldset.declared_fields.keys()]
+        context = fieldset.get_context()
+        context.update(
+            name=fieldset_name,
+            fields=[self.form[field_name] for field_name in field_names],
+        )
+        self.renderer._rendered_fields.update({field_name: False for field_name in field_names})
+        rendered = mark_safe(self.renderer.render(fieldset.template_name, context))
+        self.renderer._rendered_fields.update({field_name: True for field_name in field_names})
+        return rendered
 
     def _get_client_messages(self):
         """

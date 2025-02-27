@@ -1,5 +1,6 @@
 import functools
 import json
+import types
 
 from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
@@ -22,7 +23,7 @@ from docutils.parsers.rst import Parser
 from docutils.writers import get_writer_class
 
 from formset.calendar import CalendarResponseMixin
-from formset.utils import FormMixin
+from formset.form import DeclarativeFieldsetMetaclass, FormMixin
 from formset.views import (
     FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormCollectionViewMixin, FormViewMixin,
     EditCollectionView, BulkEditCollectionView
@@ -45,7 +46,7 @@ from testapp.forms.cafeteria import CafeteriaCollection, CoffeeOrderCollection
 from testapp.forms.checkout import CheckoutCollection
 from testapp.forms.country import CountryForm
 from testapp.forms.county import CountyForm
-from testapp.forms.customer import CustomerCollection
+from testapp.forms.customer import CustomerForm
 from testapp.forms.gallerycollection import GalleryCollection
 from testapp.forms.issue import EditIssueCollection
 from testapp.forms.moment import MomentBoxForm, MomentCalendarForm, MomentInputForm, MomentPickerForm
@@ -184,7 +185,12 @@ class DemoFormViewMixin(DemoViewMixin, CalendarResponseMixin, IncompleteSelectRe
         renderer_class = import_string(f'formset.renderers.{self.framework}.FormRenderer')
         if self.mode != 'native':
             renderer = renderer_class(**attrs)
-            form_class = type(form_class.__name__, (FormMixin, form_class), {'default_renderer': renderer})
+            form_class = types.new_class(
+                form_class.__name__,
+                bases=(FormMixin, form_class),
+                kwds={'metaclass': DeclarativeFieldsetMetaclass},
+                exec_body=lambda ns: ns.update(default_renderer=renderer),
+            )
         return form_class
 
 
@@ -610,8 +616,8 @@ urlpatterns = [
     path('cafeteria', DemoFormCollectionView.as_view(
         collection_class=CafeteriaCollection,
     ), name='cafeteria'),
-    path('customer', DemoFormCollectionView.as_view(
-        collection_class=CustomerCollection,
+    path('customer', DemoFormView.as_view(
+        form_class=CustomerForm,
     ), name='customer'),
     path('contact', DemoFormCollectionView.as_view(
         collection_class=ContactCollection,
