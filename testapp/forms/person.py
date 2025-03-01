@@ -3,8 +3,8 @@ from time import sleep
 from django.core.exceptions import ValidationError
 from django.forms import fields, forms, models, widgets
 
+from formset.form import FormMixin
 from formset.renderers.bootstrap import FormRenderer as BootstrapFormRenderer
-from formset.utils import FormMixin
 from formset.widgets import DateInput, Selectize, SelectizeMultiple, UploadedFileInput
 
 from testapp.models import PersonModel
@@ -22,7 +22,6 @@ class SimplePersonForm(forms.Form):
         max_length=50,
         help_text="Please enter at least two characters",
     )
-
     first_name = fields.RegexField(
         r'^[A-Z][ a-z\-]*$',
         label="First name",
@@ -40,7 +39,7 @@ class PersonForm(SimplePersonForm):
         return cd
 
 
-class PersonFormBootstrapRenderer(FormMixin, PersonForm):
+class BootstrapRenderedPersonForm(PersonForm):
     """
     This form class shows how to use a custom renderer. The form then can be rendered using ``{{ form }}``
     """

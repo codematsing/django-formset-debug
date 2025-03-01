@@ -15,9 +15,10 @@ green.
 This default behavior is not always desired and can be configured to be less verbose.
 
 Here is a simple form used to show how to withhold various feedback messages nearby the
-rejected fields. This is done by adding the attribute ``withhold-feedback="..."`` with one
-or a combination of those values: ``messages``, ``errors``, ``warnings`` and/or ``success``.
-These four values can be combined to create the desired feedback.
+rejected fields. This is done by adding the optional attribute ``withhold-feedback="..."`` to the
+``<django-formset>``-element. This attribute can hold one or a combination of the following values:
+``messages``, ``errors``, ``warnings`` and/or ``success``. These four values can be combined to
+create the desired feedback.
 
 .. django-view:: person_view
 	:view-function: PersonView.as_view(extra_context={'framework': 'bootstrap', 'pre_id': 'person-result'}, form_kwargs={'auto_id': 'pf_id_%s'})
@@ -54,8 +55,8 @@ These four values can be combined to create the desired feedback.
 	    template_name = "form.html"
 	    success_url = "/success"
 
-This form behaves as the default. We now can change the feedback behavior by adding the special
-argument ``withhold-feedback="…"`` to the directive ``<django-formset>``.
+This form behaves as the default. We now can change the feedback behavior by using the directive
+``<django-formset withhold-feedback="…">``:
 
 
 Withhold Validation Tick

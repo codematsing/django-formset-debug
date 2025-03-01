@@ -1,14 +1,33 @@
 from django.core.exceptions import ImproperlyConfigured
-from django.forms import forms
-
-from formset.utils import FormMixin
+from django.forms.fields import Field
 
 
-class FieldsetMixin(FormMixin):
+class FieldsetFieldsMetaclass(type):
+    """
+    Modified metaclass to collect fields and fieldsets from the Form class definition.
+    """
+
+    def __new__(mcs, name, bases, attrs):
+        # Collect fields from current class and remove them from attrs.
+        attrs['declared_fields'] = {
+            key: attrs.pop(key)
+            for key, value in list(attrs.items())
+            if isinstance(value, Field)
+        }
+
+        new_class = super().__new__(mcs, name, bases, attrs)
+        return new_class
+
+
+class Fieldset(metaclass=FieldsetFieldsMetaclass):
+    """
+    Fieldset can be used to visually group fields inside a Form. In addition to that, a fieldset can have
+    show-, hide- and disable conditions.
+    """
+    legend = None
     show_condition = None
     hide_condition = None
     disable_condition = None
-    legend = None
     help_text = None
     template_name = 'formset/default/fieldset.html'
 
@@ -31,26 +50,13 @@ class FieldsetMixin(FormMixin):
         super().__init__(**kwargs)
 
     def get_context(self):
-        context = super().get_context()
-        context.update(
-            form_id=self.form_id,
-            show_condition=self.show_condition,
-            hide_condition=self.hide_condition,
-            disable_condition=self.disable_condition,
-            legend=self.legend,
-            help_text=self.help_text,
-        )
-        return context
+        return {
+            'show_condition': self.show_condition,
+            'hide_condition': self.hide_condition,
+            'disable_condition': self.disable_condition,
+            'legend': self.legend,
+            'help_text': self.help_text,
+        }
 
-
-class Fieldset(FieldsetMixin, forms.Form):
-    """
-    This is just DOM sugar wrapped into a Form. It therefore behaves like a Form object and should
-    be used as such. Its purpose is to add visual elements to a `<form>`. Remember, a Form is just a
-    data-abstraction layer, has no display properties and is not intended to be styled or annotated.
-    On the other side, a <fieldset> may offer a `<legend>`, a border and the possibility to
-    show/hide or disable a set of fields. A `HTMLFieldSetElement` however does not have any field
-    validation functionality, this is left to the `HTMLFormElement`.
-    """
     def __repr__(self):
         return f'<{self.__class__.__name__} legend="{self.legend}" template_name="{self.template_name}">'

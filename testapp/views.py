@@ -1,5 +1,6 @@
 import functools
 import json
+import types
 
 from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
@@ -22,7 +23,7 @@ from docutils.parsers.rst import Parser
 from docutils.writers import get_writer_class
 
 from formset.calendar import CalendarResponseMixin
-from formset.utils import FormMixin
+from formset.form import DeclarativeFieldsetMetaclass, FormMixin
 from formset.views import (
     FileUploadMixin, IncompleteSelectResponseMixin, FormCollectionView, FormCollectionViewMixin, FormViewMixin,
     EditCollectionView, BulkEditCollectionView
@@ -41,16 +42,18 @@ from testapp.forms.contact import (
 )
 from testapp.forms.birthdate import BirthdateBoxForm, BirthdateCalendarForm, BirthdateInputForm, BirthdatePickerForm
 from testapp.forms.booking import BookingBoxForm, BookingCalendarForm, BookingPickerForm
+from testapp.forms.cafeteria import CafeteriaCollection, CoffeeOrderCollection
+from testapp.forms.checkout import CheckoutCollection
 from testapp.forms.country import CountryForm
 from testapp.forms.county import CountyForm
-from testapp.forms.customer import CustomerCollection
+from testapp.forms.customer import CustomerForm
 from testapp.forms.gallerycollection import GalleryCollection
 from testapp.forms.issue import EditIssueCollection
 from testapp.forms.moment import MomentBoxForm, MomentCalendarForm, MomentInputForm, MomentPickerForm
 from testapp.forms.moon import MoonForm, MoonCalendarRenderer
 from testapp.forms.opinion import OpinionForm
 from testapp.forms.person import (
-    ButtonActionsForm, sample_person_data, ModelPersonForm, PersonForm, PersonFormBootstrapRenderer,
+    ButtonActionsForm, sample_person_data, BootstrapRenderedPersonForm, ModelPersonForm, PersonForm,
 )
 from testapp.forms.phone import PhoneForm
 from testapp.forms.poll import ModelPollForm, PollCollection
@@ -182,7 +185,12 @@ class DemoFormViewMixin(DemoViewMixin, CalendarResponseMixin, IncompleteSelectRe
         renderer_class = import_string(f'formset.renderers.{self.framework}.FormRenderer')
         if self.mode != 'native':
             renderer = renderer_class(**attrs)
-            form_class = type(form_class.__name__, (FormMixin, form_class), {'default_renderer': renderer})
+            form_class = types.new_class(
+                form_class.__name__,
+                bases=(FormMixin, form_class),
+                kwds={'metaclass': DeclarativeFieldsetMetaclass},
+                exec_body=lambda ns: ns.update(default_renderer=renderer),
+            )
         return form_class
 
 
@@ -357,6 +365,31 @@ demo_css_classes = {
                 'city': 'mb-2 col-8',
                 'submit': 'd-grid col-6 col-md-5 col-lg-4 col-xl-3',
                 'reset': 'd-grid col-6 col-md-5 col-lg-4 col-xl-3',
+            },
+        },
+        'contact': {
+            'form_css_classes': 'row',
+            'field_css_classes': {
+                '*': 'mb-2 col-12',
+                'next': 'mt-2 offset-6 col-6',
+            },
+        },
+        'shipping': {
+            'form_css_classes': 'row',
+            'field_css_classes': {
+                '*': 'mb-2 col-12',
+                'postal_code': 'mb-2 col-4',
+                'city': 'mb-2 col-8',
+                'previous': 'mt-2 col-6',
+                'next': 'mt-2 col-6',
+            },
+        },
+        'payment': {
+            'form_css_classes': 'row',
+            'field_css_classes': {
+                '*': 'mb-2 col-12',
+                'previous': 'mt-2 col-6',
+                'submit': 'mt-2 col-6',
             },
         },
         'horizontal': {
@@ -568,13 +601,23 @@ urlpatterns = [
         initial={'person': {'first_name': "Jack", 'last_name': "Lee"}, 'profession': {'company': "Awesto"}},
         extra_context={'click_actions': 'disable -> submit -> setFieldValue(profession.company, ^success_url) !~ scrollToError'},
     ), name='simplecontact'),
+    path('checkout', DemoFormCollectionView.as_view(
+        collection_class=CheckoutCollection,
+        template_name='testapp/form-collection-no-buttons.html',
+    ), name='checkout'),
     path('terms_of_use', DemoFormCollectionView.as_view(
         collection_class=AcceptTermsCollection,
         template_name='testapp/form-collection-no-buttons.html',
     ), name='simplecontact'),
     path('issue', IssueCollectionView.as_view(), name='issue'),
-    path('customer', DemoFormCollectionView.as_view(
-        collection_class=CustomerCollection,
+    path('coffe', DemoFormCollectionView.as_view(
+        collection_class=CoffeeOrderCollection,
+    ), name='coffe'),
+    path('cafeteria', DemoFormCollectionView.as_view(
+        collection_class=CafeteriaCollection,
+    ), name='cafeteria'),
+    path('customer', DemoFormView.as_view(
+        form_class=CustomerForm,
     ), name='customer'),
     path('contact', DemoFormCollectionView.as_view(
         collection_class=ContactCollection,
@@ -616,7 +659,7 @@ urlpatterns = [
         model=PersonModel,
     ), name='person'),
     path('person-bootstrap-renderer', DemoFormView.as_view(
-        form_class=PersonFormBootstrapRenderer,
+        form_class=BootstrapRenderedPersonForm,
         template_name='testapp/extended-form.html',
     ), name='person-bootstrap-renderer'),
     path('person-bootstrap-params', DemoFormView.as_view(

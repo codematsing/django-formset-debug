@@ -41,7 +41,7 @@ jobs:
         npm run tailwindcss
     - name: Build Client
       run: |
-        npm run esbuild
+        npm run esbuild.modular
         npm run esbuild.monolith
     - name: Translate *.po files
       run: cd formset && django-admin compilemessages

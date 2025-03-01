@@ -4,7 +4,6 @@ from pathlib import Path
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.forms.utils import ErrorDict, ErrorList, RenderableMixin
-from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 
 from formset.renderers.default import FormRenderer
@@ -31,6 +30,9 @@ class FormsetErrorList(ErrorList):
             'errors': self,
             'client_messages': self.client_messages,
         }
+
+    def __repr__(self):
+        return f'<{self.__class__.__name__}: {[item for item in self]} {self.client_messages}>'
 
 
 class HolderMixin:
@@ -114,59 +116,8 @@ class HolderMixin:
         return super().is_valid()
 
 
-class FormDecoratorMixin:
-    def __init__(self, error_class=FormsetErrorList, **kwargs):
-        kwargs['error_class'] = error_class
-        super().__init__(**kwargs)
-
-    def __getitem__(self, name):
-        "Returns a modified BoundField for the given field."
-        from formset.boundfield import BoundField
-
-        try:
-            field = self.fields[name]
-        except KeyError:
-            raise KeyError(f"Key {name} not found in Form")
-        return BoundField(self, field, name)
-
-    @cached_property
-    def form_id(self):
-        # The "form" tag is used to link fields to their form owner
-        # See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-form for details
-        auto_id = self.auto_id if '%s' in str(self.auto_id) else 'id_%s'
-        if self.prefix:
-            return auto_id % self.prefix
-        else:
-            return auto_id % self.__class__.__name__.lower()
-
-
-class FormMixin(FormDecoratorMixin, HolderMixin):
-    """
-    Mixin class to be added to a native Django Form. This is required to overwrite
-    some form methods provided by Django
-    """
-
-    def add_prefix(self, field_name):
-        """
-        Return the field name with a prefix preended, if this Form has a prefix set.
-        """
-        return f'{self.prefix}.{field_name}' if self.prefix else field_name
-
-    def get_context(self):
-        """
-        This simplified method just returns the ``form``, but not the ``fields``, ``hidden_fields``
-        and ``errors``, since they are rendered by the included ``form.html`` template.
-        """
-        return {
-            'form': self,
-        }
-
-    def get_field(self, field_name):
-        return self.fields[field_name]
-
-
 class FileFieldMixin:
-    def clean(self, value, initial):
+    def clean(self, value, initial=None):
         if isinstance(value, Path) and initial is not None:
             initial = copy.copy(initial)
             initial.name = str(value)

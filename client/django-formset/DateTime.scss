@@ -5,7 +5,13 @@
 
 	// Date input fields
 	+ [role="textbox"] {
-		position: relative;
+		display: flex !important;
+		align-items: center;
+		flex-direction: row-reverse;
+		flex-wrap: nowrap;
+		justify-content: flex-end;
+		border: var(--border-width) var(--border-style) var(--border-color);
+		border-radius: var(--border-radius);
 
 		&.focus {
 			--dummy-style: none;  // required by Calendar.transferStyles()
@@ -14,10 +20,6 @@
 		> .calendar-picker-indicator {
 			display: flex;
 			align-items: center;
-			position: absolute;
-			top: 0;
-			left: 0.5rem;
-			bottom: 0;
 			cursor: pointer;
 			svg {
 				scale: 0.75;
@@ -26,10 +28,12 @@
 
 		> .datetime-edit {
 			display: flex;
+			flex-wrap: nowrap;
+			margin-inline: 0.25rem;
 			overflow-x: hidden;
 
 			> .datetime-delimiter {
-				color: $calendar-delimiter-color;
+				color: $semimuted-item-color;
 				margin: 0 -1px;
 				&.wide {
 					margin: 0;
@@ -45,40 +49,35 @@
 				&:focus-visible {
 					border-radius: 3px;
 					outline: none;
-					background-color: $calendar-selected-background-color;
-					color: $calendar-selected-color;
+					background-color: $selected-item-background-color;
 				}
 			}
 
 			> .datetime-edit-year-field:empty::after {
 				content: "yyyy";
-				color: lightgrey;
+				color: $semimuted-item-color;
 			}
 
 			> .datetime-edit-month-field:empty::after {
 				content: "mm";
-				color: lightgrey;
+				color: $semimuted-item-color;
 			}
 
 			> .datetime-edit-day-field:empty::after {
 				content: "dd";
-				color: lightgrey;
+				color: $semimuted-item-color;
 			}
 
 			> .datetime-edit-hour-field:empty::after {
 				content: "HH";
-				color: lightgrey;
+				color: $semimuted-item-color;
 			}
 
 			> .datetime-edit-minute-field:empty::after {
 				content: "MM";
-				color: lightgrey;
+				color: $semimuted-item-color;
 			}
 		}
 	}
 
-}
-
-:is([is="django-datepicker"], [is="django-datetimepicker"], [is="django-daterangepicker"], [is="django-datetimerangepicker"]) + [role="textbox"] > .datetime-edit {
-	margin-left: calc(1rem + 0.6em);
 }

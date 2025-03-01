@@ -1,8 +1,10 @@
 import isString from 'lodash.isstring';
 import {parse} from '../build/tag-attributes';
+import isEqual from 'lodash.isequal';
+import isFunction from 'lodash.isfunction';
 
 
-export abstract class FormDialog {
+export abstract class FormDialogBase {
 	protected readonly element: HTMLDialogElement;
 	protected readonly formElement: HTMLFormElement;
 	private readonly dialogHeaderElement: HTMLElement|null;
@@ -108,8 +110,8 @@ export abstract class FormDialog {
 
 	// Hook to be overridden by subclasses.
 	// It shall return the aggregated data of the form dialog.
-	protected getDataValue(path: Array<string>) : string|undefined {
-		return undefined;
+	protected getDataValue(path: Array<string>) : string|null {
+		return null;
 	}
 
 	// Hook to be overridden by subclasses.
@@ -126,5 +128,95 @@ export abstract class FormDialog {
 	public updateOperability(...args: any[]) {
 		this.induceOpen(...args);
 		this.induceClose(...args);
+	}
+}
+
+
+class FormDialog extends FormDialogBase implements Inducible {
+	private form?: DjangoForm;
+
+	constructor(element: HTMLDialogElement) {
+		super(element);
+		const formElement = element.querySelector('form[method="dialog"]');
+		if (!formElement)
+			throw new Error(`${element} requires child <form method="dialog">`);
+		formElement.addEventListener('django-formset-connected', this.registerInducer, {once: true});
+	}
+
+	private registerInducer = (event: Event) => {
+		if (!(event instanceof CustomEvent))
+			return;
+		this.form = event.detail.form as DjangoForm;
+		this.form.formset.registerInducer(this, this.updateOperability);
+	};
+
+	protected openDialog(...args: any[]) {
+		if (this.element.open)
+			return;
+		if (!this.form)
+			throw new Error(`${this}.form has never been registered`);
+		this.form.setPristine();
+		this.form.untouch();
+		if (args[0] /*instanceof DjangoButton*/ && isFunction(args[1])) {
+			args[1].call(args[0], this.form.path);
+		}
+		super.openDialog(...args);
+ 	}
+
+	protected closeDialog(...args: any[]) {
+		if (!isString(args[1]))
+			return;
+		const form = this.form!;
+		switch (args[1]) {
+			case 'apply':
+				if (form.isValid()) {
+					this.element.close('apply');
+				}
+				break;
+			case 'close':
+				this.element.blur();
+				this.element.close('close');
+				break;
+			case 'reset':
+				form.resetToInitial();
+				break;
+			case 'clear':
+				form.resetToInitial();
+				this.element.blur();
+				this.element.close('clear');
+				break;
+			default:
+				break;
+		}
+	}
+
+	protected getDataValue(path: Path) : string|null {
+		return this.form!.getDataValue(path);
+	}
+
+	protected isButtonActive(path: Path, action: string): boolean {
+		const absPath = path[0] !== '' ? path : (() => {
+			// path is relative, so concatenate it to the form's path
+			const absPath = [...this.form!.path];
+			const relPath = path.filter(part => part !== '');
+			const delta = path.length - relPath.length;
+			absPath.splice(absPath.length - delta + 1);
+			absPath.push(...relPath);
+			return absPath;
+		})();
+		const button = this.form!.formset.buttons.find(button => isEqual(button.path, absPath));
+		return action === 'active' && button === this.form!.formset.currentActiveButton;
+	}
+}
+
+
+const FD = Symbol('FormDialog');
+
+export class FormDialogElement extends HTMLDialogElement {
+	private [FD]: FormDialog;  // hides internal implementation
+
+	constructor() {
+		super();
+		this[FD] = new FormDialog(this);
 	}
 }

@@ -1,5 +1,4 @@
 from django.db import models
-from django.urls import reverse
 
 from testapp.models.reporter import Reporter
 

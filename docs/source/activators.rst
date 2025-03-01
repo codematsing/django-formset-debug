@@ -9,14 +9,14 @@ Django application, these buttons must be added to the rendering templates as HT
 you think about it, a button also is an input field, sometimes rendered as ``<button …>`` and
 sometimes as ``<input type="button" …>``. Okay, the button's value is transient and it only is used
 to trigger an action, such as submit, reset or a custom event. But it still is an input field with a
-name and a value, so why does Django not provide a field type for it? 
+name and a value, so why does Django not provide a field type for it?
 
 This is where **django-formset** comes in. It provides a field type for buttons named "Activator".
 This name was chosen to distinguish it from the term "Button", which is used for its representation
 in HTML. Such an :class:`formset.fields.Activator` behaves as any other Django Form field and can be
 used to trigger an action – more on that later. The default widget of an ``Activator`` field is, as
 one might expect, the :class:`formset.widgets.Button` widget. An ``Activator`` can be used inside
-any Django ``Form`` or ``FormCollection``. It then behaves very similar to a normal field. The main
+any Django ``Form`` or ``FormCollection``. There it behaves very similar to a normal field. The main
 difference is that it does not store any data and hence can't be initialized. Instead, it waits for
 click events which then can be intercepted by other components of the embedding
 ``<django-formset>``-component.
@@ -31,7 +31,7 @@ or opening a dialog. While this approach is very flexible, it does not fit well 
 concept which aims to be declarative. We therefore need to invert the flow of control.
 
 Instead of adding an event listener to the button which then performs some action, the interested
-component can listen for the named ``Activator`` field to be clicked. A dialog component for
+component can *listen* for the named ``Activator`` field to be clicked. A dialog component for
 instance, can popup and disappear by specifying any condition on button activation and the state of
 other input fields.
 
@@ -79,9 +79,9 @@ This ``action`` attribute can be configured in many different ways, more on this
 	    success_url = "/success"
 
 By allowing activator fields to be part of the form and collection logic, we can declare a
-self-contained submission workflow, rather than the hybrid approach we're use to, where buttons must
-be declared in template and the form is declared in Python. This also allows us to place buttons
-anywhere, and not just at the top or bottom of the form.
+self-contained submission workflow, rather than the hybrid approach we're used to, where buttons
+must be declared in template and the form is declared in Python. This also allows us to place
+buttons anywhere, and not just at the top or bottom of the form.
 
 
 Button Variants
@@ -96,6 +96,10 @@ manner across the application. These variants are defined in the ``ButtonVariant
 * ``ButtonVariant.DANGER``: Use to delete something.
 * ``ButtonVariant.WARNING``: Use to reset the form.
 * ``ButtonVariant.INFO``: Use to navigate somewhere.
+
+These terms are borrowed from the Bootstrap framework, but they can be used for all other CSS
+frameworks supported by **django-formset**. It might be necessary to adopt the corresponding CSS
+classes.
 
 
 Button Icons

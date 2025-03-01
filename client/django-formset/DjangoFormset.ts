@@ -8,14 +8,14 @@ import isString from 'lodash.isstring';
 import setDataValue from 'lodash.set';
 import template from 'lodash.template';
 import Sortable, {SortableEvent} from 'sortablejs';
+import {StyleHelpers} from './helpers';
 import {FileUploadWidget} from './FileUploadWidget';
-import {FormDialog} from './FormDialog';
 import {ErrorKey, FieldErrorMessages} from './Widget';
 import {parse} from '../build/tag-attributes';
 import spinnerIcon from '../icons/spinner.svg';
 import okayIcon from '../icons/okay.svg';
 import bummerIcon from '../icons/bummer.svg';
-import styles from './DjangoFormset.scss';
+import mainStyles from './DjangoFormset.scss';
 
 type FieldElement = HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement;
 type FieldValue = string|Array<string|Object>;
@@ -25,15 +25,14 @@ const COLLECTION_ERRORS = '_collection_errors_';
 const MARKED_FOR_REMOVAL = '_marked_for_removal_';
 
 const style = document.createElement('style');
-style.innerText = styles;
+style.innerText = mainStyles;
 document.head.appendChild(style);
 
-
-function assert(condition: any, message?: string) {
-	if (!condition) {
-		message = message ? `Assertion failed: ${message}` : "Assertion failed";
-		throw new Error(message);
-	}
+if (style.sheet instanceof CSSStyleSheet) {
+	StyleHelpers.pushMediaQueryStyles([[style.sheet, 'django-formset', {
+		'--django-formset-background-color': 'background-color',
+		'--django-formset-foreground-color': 'color',
+	}, document.body]]);
 }
 
 
@@ -50,6 +49,7 @@ class FieldGroup {
 	public readonly form: DjangoForm;
 	public readonly name: string;
 	public readonly element: HTMLElement;
+	public readonly isInitialized: Promise<boolean>;
 	private readonly pristineValue: BoundValue;
 	private readonly fieldElements: Array<FieldElement>;
 	private readonly initialDisabled: Array<boolean>;
@@ -64,6 +64,8 @@ class FieldGroup {
 	constructor(form: DjangoForm, element: HTMLElement) {
 		this.form = form;
 		this.element = element;
+		let resolveInitialized: Function;
+		this.isInitialized = new Promise(r => resolveInitialized = r);
 		this.errorPlaceholder = element.querySelector('.dj-errorlist > .dj-placeholder');
 		this.errorMessages = new FieldErrorMessages(element);
 		const requiredAny = element.classList.contains('dj-required-any');
@@ -121,6 +123,12 @@ class FieldGroup {
 			textAreaElement.addEventListener('blur', () => this.validate());
 			textAreaElement.addEventListener('invalid', () => this.showErrorMessage(textAreaElement));
 			this.fieldElements.push(textAreaElement);
+		}
+		if (textAreaElement && 'isInitialized' in textAreaElement) {
+			// currently only the `<textarea is="django-richtext">` is initialized asynchronously
+			textAreaElement.addEventListener('initialized', () => resolveInitialized(textAreaElement.isInitialized));
+		} else {
+			resolveInitialized!(true);
 		}
 
 		this.name = this.assertUniqueName();
@@ -397,13 +405,18 @@ class FieldGroup {
 			if (!element.validity.valid)
 				break;
 		}
-		if (element && !element.validity.valid) {
-			element.dispatchEvent(new Event('invalid', {bubbles: true}));
+		if (!element)
+			throw new Error("No input element to validate.");
+
+		if (!element.validity.valid) {
 			if (element instanceof HTMLInputElement && element.type === 'file') {
 				this.validateFileInput(element, this.form.formset.showFeedbackMessages);
 			}
 		}
-		this.form.validate();
+		if (this.form.validate() && !element.validity.valid) {
+			// the form validated but the field did not, so dispatch an 'invalid' event
+			element.dispatchEvent(new Event('invalid'));
+		}
 	}
 
 	private validateCheckboxSelectMultiple() {
@@ -538,7 +551,6 @@ function allowedAction(target: any, propertyKey: string, descriptor: PropertyDes
 	descriptor.value.isAllowedAction = true;  // tag function to be allowed as ButtonAction
 	return descriptor;
 }
-
 
 
 class DjangoButton {
@@ -958,7 +970,7 @@ class DjangoButton {
 	 * Called after all actions have been executed.
 	 */
 	private restore() {
-		window.setTimeout(() => this.restoreToInitial());
+		window.requestIdleCallback(() => this.restoreToInitial(), {timeout: 250});
 	}
 
 	private decorate(decorator: HTMLElement, ms?: number) {
@@ -1167,81 +1179,15 @@ class DjangoFieldset {
 }
 
 
-class PerpetualFormDialog extends FormDialog {
-	private readonly form: DjangoForm;
-
-	constructor(form: DjangoForm, element: HTMLDialogElement) {
-		super(element);
-		this.form = form;
-	}
-
-	protected openDialog(...args: any[]) {
-		if (this.element.open)
-			return;
-		this.form.setPristine();
-		this.form.untouch();
-		if (args[0] instanceof DjangoButton && isFunction(args[1])) {
-			args[1].call(args[0], this.form.path);
-		}
-		super.openDialog(...args);
- 	}
-
-	protected closeDialog(...args: any[]) {
-		if (!isString(args[1]))
-			return;
-		switch (args[1]) {
-			case 'apply':
-				if (this.form.isValid()) {
-					this.element.close('apply');
-				}
-				break;
-			case 'close':
-				this.element.blur();
-				this.element.close('close');
-				break;
-			case 'reset':
-				this.form.resetToInitial();
-				break;
-			case 'clear':
-				this.form.resetToInitial();
-				this.element.blur();
-				this.element.close('clear');
-				break;
-			default:
-				break;
-		}
-	}
-
-	protected getDataValue(path: Path) : string|undefined {
-		return this.form.getDataValue(path);
-	}
-
-	protected isButtonActive(path: Path, action: string): boolean {
-		const absPath = path[0] !== '' ? path : (() => {
-			// path is relative, so concatenate it to the form's path
-			const absPath = [...this.form.path];
-			const relPath = path.filter(part => part !== '');
-			const delta = path.length - relPath.length;
-			absPath.splice(absPath.length - delta + 1);
-			absPath.push(...relPath);
-			return absPath;
-		})();
-		const button = this.form.formset.buttons.find(button => isEqual(button.path, absPath));
-		return action === 'active' && button === this.form.formset.currentActiveButton;
-	}
-}
-
-
 class DjangoForm {
 	public readonly formset: DjangoFormset;
 	public readonly element: HTMLFormElement;
 	public readonly path: Path;
-	public readonly fieldset: DjangoFieldset|null;
+	public readonly fieldsets = Array<DjangoFieldset>(0);
 	private readonly errorList: HTMLUListElement|null = null;
 	private readonly errorPlaceholder: HTMLLIElement|null = null;
 	public readonly fieldGroups = Array<FieldGroup>(0);
 	public readonly hiddenInputFields = Array<HTMLInputElement>(0);
-	public readonly parentDialog: PerpetualFormDialog|null = null;
 	public readonly isTransient: boolean;
 	public markedForRemoval = false;
 
@@ -1249,20 +1195,22 @@ class DjangoForm {
 		this.formset = formset;
 		this.element = element;
 		this.path = this.name?.split('.') ?? [];
-		const next = element.nextSibling;
-		this.fieldset = next instanceof HTMLFieldSetElement && next.form === element ? new DjangoFieldset(this, next) : null;
+		this.findFieldsets();
 		const placeholder = element.nextElementSibling?.querySelector(':scope > .dj-form-errors > ul.dj-errorlist > li.dj-placeholder');
 		if (placeholder) {
 			this.errorList = placeholder.parentElement as HTMLUListElement;
 			this.errorPlaceholder = this.errorList.removeChild(placeholder) as HTMLLIElement;
 		}
-		this.isTransient = Boolean(this.element.getAttribute('df-transient'));
-		if (!this.isTransient) {
-			const dialog = element.closest('dialog');
-			this.parentDialog = dialog ? new PerpetualFormDialog(this, dialog) : null;
-		}
+		this.isTransient = this.element.hasAttribute('df-transient');
 		this.element.addEventListener('submit', this.handleSubmit);
 		this.element.addEventListener('reset', this.handleReset);
+	}
+
+	private findFieldsets() {
+		const nextSibling = this.element.nextElementSibling;
+		nextSibling?.querySelectorAll('FIELDSET').forEach(element => {
+			this.fieldsets.push(new DjangoFieldset(this, element as HTMLFieldSetElement));
+		});
 	}
 
 	aggregateValues(): Map<string, FieldValue> {
@@ -1315,20 +1263,20 @@ class DjangoForm {
 	}
 
 	public updateOperability(...args: any[]) {
-		this.fieldset?.updateOperability(...args);
+		this.fieldsets.forEach(fieldset => fieldset.updateOperability(...args));
 		this.fieldGroups.forEach(fieldGroup => fieldGroup.updateOperability(...args));
-		this.parentDialog?.updateOperability(...args);
 	}
 
 	setSubmitted() {
 		this.fieldGroups.forEach(fieldGroup => fieldGroup.setSubmitted());
+		this.element.dispatchEvent(new Event('submitted'));
 	}
 
-	validate() {
-		this.formset.validate();
+	validate() : boolean {
+		return this.formset.validate();
 	}
 
-	isValid() {
+	isValid() : boolean {
 		if (this.element.noValidate)
 			return true;
 		let isValid = true;
@@ -1435,6 +1383,15 @@ class DjangoForm {
 
 	public restoreRequiredConstraints() {
 		this.fieldGroups.forEach(fieldGroup => fieldGroup.restoreRequiredConstraint());
+	}
+
+	get isConnected() : Promise<boolean[]> {
+		return new Promise<boolean[]>(resolve => {
+			Promise.all(this.fieldGroups.map(group => group.isInitialized)).then(result => {
+				this.element.dispatchEvent(new CustomEvent('django-formset-connected', {detail: {form: this}}));
+				resolve(result);
+			});
+		});
 	}
 }
 
@@ -1822,11 +1779,12 @@ class DjangoFormCollectionTemplate {
 }
 
 
-export class DjangoFormset {
+export class DjangoFormset implements DjangoFormset {
 	private readonly element: DjangoFormsetElement;
 	public readonly buttons = Array<DjangoButton>(0);
 	public currentActiveButton: DjangoButton|null = null;
 	private readonly forms = Array<DjangoForm>(0);
+	private readonly inducers = Array<[Inducible, Function]>(0);
 	private readonly CSRFToken: string|null;
 	public readonly formCollections = Array<DjangoFormCollection>(0);
 	private errorList: HTMLUListElement|null = null;
@@ -1836,7 +1794,7 @@ export class DjangoFormset {
 	public readonly showFeedbackMessages: boolean;
 	private readonly abortController = new AbortController;
 	private readonly emptyCollectionPrefixes = Array<string>(0);
-	private data = {};
+	private data?: object;
 
 	constructor(formset: DjangoFormsetElement) {
 		this.element = formset;
@@ -1853,7 +1811,10 @@ export class DjangoFormset {
 		this.assignFormsToCollections();
 		this.findDetachedButtons();
 		this.formCollections.forEach(collection => collection.markAsFreshAndEmpty());
-		window.setTimeout(() => this.validate(), 0);
+		Promise.all(this.forms.map(form => form.isConnected)).then(() => {
+			this.validate();
+			this.element.dispatchEvent(new CustomEvent('django-formset-connected', {detail: {formset: this}}));
+		});
 	}
 
 	get endpoint(): string {
@@ -2023,12 +1984,15 @@ export class DjangoFormset {
 				continue;
 			form.updateOperability(...args);
 		}
-		for (const button of this.buttons) {
-			button.updateOperability(...args);
-		}
+		this.buttons.forEach(button => button.updateOperability(...args));
+		this.inducers.forEach(([inducer, func]) => func.bind(inducer)(...args));
 	}
 
-	public validate() {
+	public registerInducer(inducer: Inducible, func: Function) {
+		this.inducers.push([inducer, func]);
+	}
+
+	public validate() : boolean {
 		let isValid = true;
 		for (const form of this.forms) {
 			isValid = (form.markedForRemoval || form.checkValidity()) && isValid;
@@ -2076,6 +2040,11 @@ export class DjangoFormset {
 			}
 		}
 
+		if (this.data === undefined) {
+			// submit an untouched formset
+			this.aggregateValues();
+		}
+
 		// Build a nested data structure (body) reflecting the shape of collections and forms
 		const body = {};
 
@@ -2112,7 +2081,7 @@ export class DjangoFormset {
 		this.setSubmitted();
 		if (!this.forceSubmission) {
 			for (const form of this.forms) {
-				if (form.markedForRemoval || form.isTransient || form.parentDialog?.isOpen() === false)
+				if (form.markedForRemoval || form.isTransient)
 					continue;
 				formsAreValid = form.isValid() && formsAreValid;
 			}
@@ -2134,7 +2103,7 @@ export class DjangoFormset {
 					headers: headers,
 					body: JSON.stringify(body),
 					signal: this.abortController.signal,
-				});
+				} as RequestInit);
 				switch (response.status) {
 					case 200:
 						this.clearErrors();
@@ -2375,7 +2344,7 @@ export class DjangoFormsetElement extends HTMLElement {
 		this[FS] = new DjangoFormset(this);
 	}
 
-	private static get observedAttributes() {
+	static get observedAttributes() {
 		return ['endpoint', 'withhold-feedback', 'force-submission'];
 	}
 
@@ -2383,15 +2352,15 @@ export class DjangoFormsetElement extends HTMLElement {
 		this[FS].connectedCallback();
 	}
 
-	public async submit(data?: Object) : Promise<Response|undefined> {
+	async submit(data?: Object) : Promise<Response|undefined> {
 		return this[FS].submit(data);
 	}
 
-	public async abort() {
+	async abort() {
 		return this[FS].abort();
 	}
 
-	public async reset() {
+	async reset() {
 		return this[FS].resetToInitial();
 	}
 }

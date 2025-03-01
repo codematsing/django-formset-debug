@@ -3,8 +3,8 @@ import isEmpty from 'lodash.isempty';
 import isEqual from 'lodash.isequal';
 import isString from 'lodash.isstring';
 import getDataValue from 'lodash.get';
-import {computePosition} from '@floating-ui/dom';
-import {Editor, Extension, Mark, Node, markPasteRule, mergeAttributes, getAttributes, JSONContent} from '@tiptap/core';
+import {arrow, computePosition} from '@floating-ui/dom';
+import {Editor, EditorEvents, Extension, Mark, Node, markPasteRule, mergeAttributes, getAttributes, JSONContent} from '@tiptap/core';
 import {Plugin, PluginKey} from '@tiptap/pm/state';
 import Blockquote from '@tiptap/extension-blockquote';
 import Bold from '@tiptap/extension-bold';
@@ -30,17 +30,41 @@ import Underline from '@tiptap/extension-underline';
 import {TextIndent, TextIndentOptions } from '../tiptap-extensions/indent';
 import {TextMargin, TextMarginOptions } from '../tiptap-extensions/margin';
 import {TextColor} from '../tiptap-extensions/color';
-import {FontFamily} from '../tiptap-extensions/font';
+import {ClassBasedMark, ClassBasedNode} from '../tiptap-extensions/classbased';
 import {StyleHelpers} from './helpers';
-import {FormDialog} from './FormDialog';
+import {FormDialogBase} from './FormDialog';
 import {parse} from '../build/function-code';
 import styles from './RichtextArea.scss';
+
+
+function appearTooltip(event: MouseEvent) {
+	if (!(event.target instanceof HTMLButtonElement && event.target.ariaLabel))
+		return;
+	const button = event.target;
+	const tooltipElement = document.createElement('div');
+	tooltipElement.classList.add('tooltip');
+	tooltipElement.innerText = button.ariaLabel ?? '';
+	const arrowElement = document.createElement('div');
+	arrowElement.classList.add('arrow');
+	tooltipElement.appendChild(arrowElement);
+	button.insertAdjacentElement('beforebegin', tooltipElement);
+	computePosition(button, tooltipElement, {placement: 'top', strategy: 'fixed', middleware: [arrow({element: arrowElement})]}).then(
+		({x, y}) => Object.assign(tooltipElement!.style, {
+			left: `${x}px`,
+			top: `${y}px`,
+			opacity: '0.75',
+			transition: 'opacity 0.5s 1.2s',
+		})
+	);
+	button.addEventListener('mouseleave', () => tooltipElement.remove(), {once: true});
+}
 
 
 abstract class Action {
 	public readonly name: string;
 	public readonly button: HTMLButtonElement;
 	protected readonly extensions: Array<Extension|Mark|Node> = [];
+	private tooltipElement: HTMLElement|null = null;
 
 	constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
 		this.name = name;
@@ -49,6 +73,7 @@ abstract class Action {
 
 	public installEventHandler(editor: Editor) {
 		this.button.addEventListener('click', () => this.clicked(editor));
+		this.button.addEventListener('mouseenter', appearTooltip);
 	}
 
 	protected abstract clicked(editor: Editor): void;
@@ -102,6 +127,7 @@ abstract class DropdownAction extends Action {
 		} else {
 			this.button.addEventListener('click', event => this.toggleItem(event, editor));
 		}
+		this.button.addEventListener('mouseenter', appearTooltip);
 	}
 
 	protected toggleMenu(editor: Editor, force?: boolean) {
@@ -109,8 +135,11 @@ abstract class DropdownAction extends Action {
 			const expanded = (force !== false && this.button.ariaExpanded === 'false');
 			this.button.ariaExpanded = expanded ? 'true' : 'false';
 			if (expanded) {
-				computePosition(this.button, this.dropdownMenu).then(
-					({x, y}) => Object.assign(this.dropdownMenu!.style, {left: `${x}px`, top: `${y}px`})
+				const textAreaElement = editor.options.element.nextElementSibling;
+				computePosition(this.button, this.dropdownMenu, {strategy: 'fixed'}).then(
+					({x, y}) => {
+						Object.assign(this.dropdownMenu!.style, {left: `${x}px`, top: `${y}px`});
+					}
 				);
 			}
 		}
@@ -154,8 +183,7 @@ namespace controls {
 		protected readonly extensions = [Subscript];
 
 		clicked(editor: Editor) {
-			editor.chain().focus().unsetSuperscript().run();
-			editor.chain().focus().toggleSubscript().run();
+			editor.chain().focus().unsetSuperscript().toggleSubscript().run();
 			this.activate(editor);
 		}
 	}
@@ -164,8 +192,7 @@ namespace controls {
 		protected readonly extensions = [Superscript];
 
 		clicked(editor: Editor) {
-			editor.chain().focus().unsetSubscript().run();
-			editor.chain().focus().toggleSuperscript().run();
+			editor.chain().focus().unsetSubscript().toggleSuperscript().run();
 			this.activate(editor);
 		}
 	}
@@ -267,7 +294,7 @@ namespace controls {
 							rect?.classList.forEach(value => rect.classList.remove(value));
 							rect?.classList.add(color);
 						}
-						isActive = true
+						isActive = true;
 					}
 				}
 			});
@@ -282,11 +309,8 @@ namespace controls {
 		}
 
 		extendExtensions(extensions: Array<Extension|Mark|Node>) {
-			let unmergedOptions = true;
-			extensions.forEach(e => {
-				if (e.name === 'textColor')
-					throw new Error("RichtextArea allows only one control element with 'textColor'.");
-			});
+			if (extensions.find(e => e.name === 'textColor'))
+				throw new Error("RichtextArea allows only one control element with 'textColor'.");
 			extensions.push(TextColor.configure({allowedClasses: this.allowedClasses}));
 		}
 
@@ -317,30 +341,34 @@ namespace controls {
 		}
 	}
 
-	export class FontFamilyAction extends DropdownAction {
-		private allowedClasses: Array<string> = [];
+	abstract class ClassBasedDropdownAction extends DropdownAction {
+		protected allowedClasses = new Set<string>();
 
 		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
-			super(wrapperElement, name, button, '[richtext-click^="font:"]');
+			const parts = name.split(':');
+			if (parts.length !== 2 || !parts[1])
+				throw new Error(`Element ${button} requires attribute 'richtext-click="classBased<Mark|Node>:..."'.`);
+			name = parts[1];
+			super(wrapperElement, name, button, `[richtext-click^="${name}:"]`);
 			if (!(button.nextElementSibling instanceof HTMLUListElement) || button.nextElementSibling.getAttribute('role') !== 'menu')
-				throw new Error('Font Family requires a sibling element <ul role="menu">…</ul>');
-			this.collectFonts();
+				throw new Error('Class Based Dropdown requires a sibling element <ul role="menu">…</ul>');
+			this.collectClasses();
 		}
 
-		private collectFonts() {
+		protected collectClasses() {
 			this.dropdownItems.forEach(element => {
-				const cssClass = this.extractFont(element);
+				const cssClass = this.extractClass(element);
 				if (!cssClass)
 					return;
 				if (/^-?[_a-zA-Z]+[_a-zA-Z0-9-]*$/.test(cssClass)) {
-					this.allowedClasses.push(cssClass);
+					this.allowedClasses.add(cssClass);
 				} else {
 					throw new Error(`${cssClass} is not a valid CSS class.`);
 				}
 			});
 		}
 
-		private extractFont(element: Element) {
+		protected extractClass(element: Element) {
 			const parts = element.getAttribute('richtext-click')?.split(':') ?? [];
 			if (parts.length !== 2)
 				throw new Error(`Element ${element} requires attribute 'richtext-click'.`);
@@ -354,43 +382,88 @@ namespace controls {
 		activate(editor: Editor) {
 			let isActive = false;
 			this.dropdownItems.forEach(element => {
-				const fontFamily = this.extractFont(element);
-				if (fontFamily) {
-					if (editor.isActive({fontFamily})) {
-						isActive = true
-					}
+				const cssClass = this.extractClass(element);
+				if (cssClass && this.allowedClasses.has(cssClass) && this.isActive(editor, cssClass)) {
+					isActive = true;
 				}
 			});
 			this.button.classList.toggle('active', isActive);
 		}
 
-		extendExtensions(extensions: Array<Extension|Mark|Node>) {
-			let unmergedOptions = true;
-			extensions.forEach(e => {
-				if (e.name === 'fontFamily')
-					throw new Error("RichtextArea allows only one control element with 'fontFamily'.");
-			});
-			extensions.push(FontFamily.configure({allowedClasses: this.allowedClasses}));
+		protected isActive(editor: Editor, cssClass: string) {
+			return false;
 		}
 
 		protected toggleMenu(editor: Editor, force?: boolean) {
 			super.toggleMenu(editor, force);
 			this.dropdownItems.forEach(element => {
-				const cssClass = this.extractFont(element);
-				element.parentElement?.classList.toggle('active', editor.isActive({fontFamily: cssClass}));
+				const cssClass = this.extractClass(element);
+				element.parentElement?.classList.toggle('active', this.isActive(editor, cssClass ?? ''));
 			});
+		}
+	}
+
+	export class ClassBasedMarkAction extends ClassBasedDropdownAction {
+		private readonly tiptapExtension: Mark;
+
+		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
+			super(wrapperElement, name, button);
+			this.tiptapExtension = ClassBasedMark.extend({name: this.name});
+		}
+
+		extendExtensions(extensions: Array<Extension|Mark|Node>) {
+			if (extensions.find(e => e.name === this.name))
+				throw new Error(`RichtextArea allows only one control element with '${this.name}'.`);
+			extensions.push(this.tiptapExtension.configure({allowedClasses: Array.from(this.allowedClasses)}));
+		}
+
+		protected isActive(editor: Editor, cssClass: string): boolean {
+			return editor.isActive({[this.name]: cssClass});
 		}
 
 		protected toggleItem(event: MouseEvent, editor: Editor) {
 			let element = event.target instanceof Element ? event.target : null;
 			while (element) {
 				if (element.role === 'menuitem') {
-					const cssClass = this.extractFont(element);
+					const cssClass = this.extractClass(element);
 					if (cssClass) {
-						editor.chain().focus().setFont(cssClass).run();
+						editor.chain().focus().setMarkClass(this.name, cssClass).run();
 					} else {
-						editor.chain().focus().unsetFont().run();
+						editor.chain().focus().unsetMarkClass(this.name).run();
 					}
+					this.activate(editor);
+					this.toggleMenu(editor, false);
+					break;
+				}
+				element = element.parentElement;
+			}
+		}
+	}
+
+	export class ClassBasedNodeAction extends ClassBasedDropdownAction {
+		private readonly tiptapExtension: Extension;
+
+		constructor(wrapperElement: HTMLElement, name: string, button: HTMLButtonElement) {
+			super(wrapperElement, name, button);
+			this.tiptapExtension = ClassBasedNode.extend({name: this.name});
+		}
+
+		extendExtensions(extensions: Array<Extension|Mark|Node>) {
+			if (extensions.find(e => e.name === this.name))
+				throw new Error(`RichtextArea allows only one control element with '${this.name}'.`);
+			extensions.push(this.tiptapExtension.configure());
+		}
+
+		protected isActive(editor: Editor, cssClass: string): boolean {
+			return Boolean(cssClass) && editor.isActive({cssClasses: new RegExp(cssClass)});
+		}
+
+		protected toggleItem(event: MouseEvent, editor: Editor) {
+			let element = event.target instanceof Element ? event.target : null;
+			while (element) {
+				if (element.role === 'menuitem') {
+					const cssClass = this.extractClass(element);
+					editor.chain().focus().toggleNodeClass(cssClass, this.allowedClasses).run();
 					this.activate(editor);
 					this.toggleMenu(editor, false);
 					break;
@@ -426,7 +499,7 @@ namespace controls {
 		}
 
 		extendExtensions(extensions: Array<Extension|Mark|Node>) {
-			if (!extensions.filter(e => e.name === 'textIndent').length) {
+			if (!extensions.find(e => e.name === 'textIndent')) {
 				extensions.push(TextIndent.configure(this.options));
 			}
 		}
@@ -461,7 +534,7 @@ namespace controls {
 		}
 
 		extendExtensions(extensions: Array<Extension|Mark|Node>) {
-			if (!extensions.filter(e => e.name === 'textMargin').length) {
+			if (!extensions.find(e => e.name === 'textMargin')) {
 				extensions.push(TextMargin.configure(this.options));
 			}
 		}
@@ -578,7 +651,14 @@ namespace controls {
 		protected toggleItem(event: MouseEvent, editor: Editor) {
 			let element = event.target instanceof Element ? event.target : null;
 			while (element) {
-				if (element.role === 'menuitem') {
+				if (this.dropdownItems.length === 0) {
+					if (element === this.button) {
+						const level = this.extractLevel(element);
+						editor.chain().focus().setHeading({level: level}).run();
+						this.activate(editor);
+						break;
+					}
+				} else if (element.role === 'menuitem') {
 					const level = this.extractLevel(element);
 					editor.chain().focus().setHeading({level: level}).run();
 					this.activate(editor);
@@ -695,7 +775,7 @@ interface FormDialogOptions {
 }
 
 
-class RichtextFormDialog extends FormDialog {
+class RichtextFormDialog extends FormDialogBase {
 	private readonly richtext: RichtextArea;
 	private readonly inputElements = new Array<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>();
 	private textSelectionField: HTMLInputElement|null = null;
@@ -739,6 +819,7 @@ class RichtextFormDialog extends FormDialog {
 				}
 			}
 		});
+		this.induceButton.addEventListener('mouseenter', appearTooltip);
 	}
 
 	activate(editor: Editor) {
@@ -949,13 +1030,13 @@ class RichtextArea {
 	constructor(wrapperElement: HTMLElement, textAreaElement: HTMLTextAreaElement) {
 		this.wrapperElement = wrapperElement;
 		this.textAreaElement = textAreaElement;
-		this.menubarElement = wrapperElement.querySelector('[role="menubar"]');
+		this.menubarElement = wrapperElement.querySelector(':scope > [role="menubar"]');
 		this.useJson = Object.hasOwn(this.textAreaElement.dataset, 'content');
-		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
+		if (!StyleHelpers.stylesAreInstalled(this.baseSelector) && this.wrapperElement.checkVisibility()) {
 			this.transferStyles();
 		}
 		this.attributesObserver = new MutationObserver(mutationsList => this.attributesChanged(mutationsList));
-		this.resizeObserver = new ResizeObserver(() => this.wrapMenubar());
+		this.resizeObserver = new ResizeObserver(() => this.adjustMenubarLayout());
 		this.initializedPromise = this.initialize();
 	}
 
@@ -970,12 +1051,14 @@ class RichtextArea {
 					// innerHTML must reflect the content, otherwise field validation complains about a missing value
 					this.textAreaElement.innerHTML = this.editor.getHTML();
 				}
-				this.contentUpdate();
+				this.updateCharCounter();
 				this.installEventHandlers();
 				this.attributesObserver.observe(this.textAreaElement, {attributes: true});
 				if (this.menubarElement) {
+					// to prevent flickering when loading the page, the visibility of the menubar is hidden
+					this.menubarElement.style.visibility = '';
 					this.resizeObserver.observe(this.menubarElement);
-					this.wrapMenubar();
+					this.adjustMenubarLayout();
 				}
 				this.isInitialized = true;
 				resolve();
@@ -983,13 +1066,17 @@ class RichtextArea {
 		});
 	}
 
-	private wrapMenubar() {
-		this.menubarElement?.querySelectorAll('[role="group"]').forEach(element => {
+	private adjustMenubarLayout() {
+		// add class 'has-sibling' to all groups that have a sibling group on their right of the same row
+		this.menubarElement?.querySelectorAll(':scope > [role="group"]').forEach(element => {
 			if (!(element instanceof HTMLElement) || !(element.nextElementSibling instanceof HTMLElement))
 				return;
 			const sameRow = element.offsetLeft < element.nextElementSibling.offsetLeft;
 			element.classList.toggle('has-sibling', sameRow);
 		});
+		const menubarHeight = this.menubarElement?.getBoundingClientRect().height ?? 0;
+		this.wrapperElement.style.setProperty('min-height', `${Math.round(menubarHeight + 80)}px`);
+		this.editor.view.dom.style.setProperty('top', `${menubarHeight + 1}px`);
 	}
 
 	private async createEditor(wrapperElement: HTMLElement, content: any) : Promise<Editor> {
@@ -1076,7 +1163,6 @@ class RichtextArea {
 		this.editor.on('focus', this.focused);
 		this.editor.on('update', this.updated);
 		this.editor.on('blur', this.blurred);
-		this.editor.on('update', this.contentUpdate);
 		this.editor.on('selectionUpdate', this.selectionUpdate);
 		const form = this.textAreaElement.form;
 		form!.addEventListener('reset', this.formResetted);
@@ -1085,23 +1171,10 @@ class RichtextArea {
 	}
 
 	private concealTextArea(wrapperElement: HTMLElement) {
-		wrapperElement.insertAdjacentElement('afterend', this.textAreaElement);
 		this.textAreaElement.classList.add('dj-concealed');
 	}
 
-	private focused = () => {
-		this.wrapperElement.classList.add('focused');
-		this.textAreaElement.dispatchEvent(new Event('focus'));
-	};
-
-	private updated = () => {
-		this.textAreaElement.innerHTML = this.editor.getHTML();
-		this.textAreaElement.dispatchEvent(new Event('input'));
-	};
-
-	private blurred = () => {
-		this.registeredActions.forEach(action => action.deactivate());
-		this.wrapperElement.classList.remove('focused');
+	private validate() {
 		if (this.textAreaElement.required && this.editor.getText().length === 0) {
 			this.wrapperElement.classList.remove('valid');
 			this.wrapperElement.classList.add('invalid');
@@ -1109,10 +1182,34 @@ class RichtextArea {
 			this.wrapperElement.classList.add('valid');
 			this.wrapperElement.classList.remove('invalid');
 		}
+	}
+
+	private focused = (event: EditorEvents['focus']) => {
+		this.wrapperElement.classList.add('focused');
+		this.textAreaElement.dispatchEvent(new Event('focus'));
+	};
+
+	private updated = () => {
+		this.textAreaElement.innerHTML = this.editor.getHTML();
+		this.updateCharCounter();
+		this.textAreaElement.dispatchEvent(new Event('input'));
+	};
+
+	private blurred = (event: EditorEvents['blur']) => {
+		const contains = event.event.relatedTarget instanceof Element && this.wrapperElement.contains(event.event.relatedTarget);
+		if (contains) {
+			event.event.preventDefault();
+			event.event.stopPropagation();
+			return;
+		}
+
+		this.registeredActions.forEach(action => action.deactivate());
+		this.wrapperElement.classList.remove('focused');
+		this.validate();
 		this.textAreaElement.dispatchEvent(new Event('blur'));
 	};
 
-	private contentUpdate = () => {
+	private updateCharCounter = () => {
 		if (this.charaterCountDiv && this.characterCountTemplate) {
 			const context = {count: this.editor.storage.characterCount.characters()};
 			this.charaterCountDiv.innerHTML = this.characterCountTemplate(context);
@@ -1134,9 +1231,12 @@ class RichtextArea {
 			}
 			chain.run();
 		}
+		this.wrapperElement.classList.remove('valid', 'invalid');
 	};
 
-	private formSubmitted = () => {};
+	private formSubmitted = () => {
+		this.validate();
+	};
 
 	private attributesChanged(mutationsList: Array<MutationRecord>) {
 		for (const mutation of mutationsList) {
@@ -1156,17 +1256,15 @@ class RichtextArea {
 		const sheet = declaredStyles.sheet;
 
 		let loaded = false;
-		const buttonGroupHeight = this.menubarElement?.getBoundingClientRect().height ?? 0;
 		for (let index = 0; index < sheet.cssRules.length; index++) {
 			const cssRule = sheet.cssRules.item(index) as CSSStyleRule;
 			let extraStyles: string;
 			switch (cssRule.selectorText) {
 				case this.baseSelector:
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
-						'height', 'background-image', 'border', 'border-radius', 'box-shadow', 'outline',
-						'resize',
+						'height', 'background-image', 'border-style', 'border-width', 'border-radius', 'box-shadow',
+						'outline', 'resize',
 					]);
-					extraStyles = extraStyles.concat(`min-height:${buttonGroupHeight * 2}px;`);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					loaded = true;
 					break;
@@ -1192,18 +1290,16 @@ class RichtextArea {
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
 						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight', 'letter-spacing',
 						'white-space', 'line-height', 'overflow', 'padding']);
-					extraStyles = extraStyles.concat(`top:${buttonGroupHeight + 1}px;`);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case `${this.baseSelector} [role="menubar"]`:
 					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
-						'border-bottom'
+						'border-bottom-style', 'border-bottom-width',
 					]);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
 				case `${this.baseSelector} [role="menubar"] button[aria-haspopup="true"] + ul[role="menu"]`:
-					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, [
-						'border', 'z-index']);
+					extraStyles = StyleHelpers.extractStyles(this.textAreaElement, ['border-radius', 'z-index']);
 					const re = new RegExp('z-index:(\\d+);');
 					const matches = extraStyles.match(re);
 					if (matches) {
@@ -1212,20 +1308,23 @@ class RichtextArea {
 						extraStyles = extraStyles.replace('z-index:auto;', 'z-index:1;');
 					}
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
-					if (this.menubarElement) {
-						extraStyles = StyleHelpers.extractStyles(document.documentElement, ['background-color']);
-						if (extraStyles === 'background-color:rgba(0, 0, 0, 0); ') {
-							extraStyles = 'background-color:rgb(255, 255, 255);'
-						}
-						sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
-					}
 					break;
 				default:
 					break;
 			}
 		}
+
+		// border color may change during runtime
+		StyleHelpers.pushMediaQueryStyles([[
+			sheet,
+			this.baseSelector,
+			{'--border-color': 'border-color'},
+			this.textAreaElement,
+		]]);
+
 		if (!loaded)
 			throw new Error(`Could not load styles for ${this.baseSelector}`);
+		// window.matchMedia('(prefers-color-scheme: dark)').onchange = () => mediaQueryStyle();
 	}
 
 	public disconnect() {
@@ -1247,19 +1346,21 @@ class RichtextArea {
 const RA = Symbol('RichtextArea');
 
 export class RichTextAreaElement extends HTMLTextAreaElement {
+	isInitialized = false;
 	private [RA]: RichtextArea;  // hides internal implementation
 
 	constructor() {
 		super();
-		const wrapperElement = this.closest('.dj-richtext-wrapper');
-		if (!(wrapperElement instanceof HTMLElement))
+		const wrapperElement = this.previousElementSibling;
+		if (!(wrapperElement instanceof HTMLElement && wrapperElement.classList.contains('dj-richtext-wrapper')))
 			throw new Error(`${this} must be a child of '<ANY class="dj-richtext-wrapper">' element.`);
 		this[RA] = new RichtextArea(wrapperElement, this);
 	}
 
 	connectedCallback() {
 		this[RA].initializedPromise.then(() => {
-			this.dispatchEvent(new Event('connected', {bubbles: true}));
+			this.isInitialized = true;
+			this.dispatchEvent(new CustomEvent('initialized'));
 		});
 	}
 

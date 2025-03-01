@@ -22,7 +22,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
-        django-version: ["4.2.*", "5.0.*"]
+        django-version: ["4.2.*", "5.0.*", "5.1.*"]
         node-version: ["18.x"]
         include:
           - use-monolithic: "1"
@@ -31,6 +31,8 @@ jobs:
         exclude:
           - python-version: "3.10"
             django-version: "5.0.*"
+          - python-version: "3.10"
+            django-version: "5.1.*"
           - python-version: "3.12"
             django-version: "4.2.*"
 
@@ -57,7 +59,7 @@ jobs:
         npm run function-code
     - name: Build Client
       run: |
-        npm run esbuild
+        npm run esbuild.modular
         npm run esbuild.monolith
         npm run compilescss
     - name: Test with pytest

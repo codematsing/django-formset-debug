@@ -1,7 +1,5 @@
 import {StyleHelpers} from './helpers';
 import {Widget} from './Widget';
-import contractLeftIcon from '../icons/contract-left.svg';
-import contractRightIcon from '../icons/contract-right.svg';
 import styles from './Calendar.scss';
 
 
@@ -57,10 +55,9 @@ export class CalendarSheet extends Widget {
 	private minYearDate?: Date;
 	private maxYearDate?: Date;
 	private readonly baseSelector = '.dj-calendar';
+	private readonly styleSheet: CSSStyleSheet;
 	private readonly rangeSelectCssRule: CSSStyleRule;
 	private readonly rangeSelectorText: string;
-	private readonly contractLeftCursor: string;
-	private readonly contractRightCursor: string;
 
 	constructor(calendarElement: HTMLElement | null, settings: CalendarSettings) {
 		super(settings.inputElement);
@@ -75,19 +72,16 @@ export class CalendarSheet extends Widget {
 		observer.observe(this.element, {childList: true});
 		this.setInterval();
 		this.setMinMaxBounds();
-		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
-			this.transferStyles();
-		}
+		this.styleSheet = StyleHelpers.stylesAreInstalled(this.baseSelector) ?? this.transferStyles();
 		this.rangeSelectCssRule = this.getRangeSelectCssRule();
 		this.rangeSelectorText = this.rangeSelectCssRule.selectorText;
 		this.registerCalendar();
 		this.sheetBounds = this.getSheetBounds();
-		this.contractLeftCursor = `url('data:image/svg+xml;utf8,${contractLeftIcon.replace(/[\n\t]/g, '')}') 9 9, pointer`;
-		this.contractRightCursor = `url('data:image/svg+xml;utf8,${contractRightIcon.replace(/[\n\t]/g, '')}') 9 9, pointer`;
 	}
 
 	private get todayDateString() : string {
-		return this.asUTCDate(new Date()).toISOString().slice(0, this.settings.dateOnly ? 10 : 16);
+		const isoString = this.asUTCDate(new Date()).toISOString();
+		return this.settings.dateOnly ? `${isoString.slice(0, 10)}T00:00` : isoString.slice(0, 16);
 	}
 
 	private asUTCDate(date: Date) : Date {
@@ -253,10 +247,10 @@ export class CalendarSheet extends Widget {
 	}
 
 	private registerWeeksView() {
-		const todayDateString = this.todayDateString.slice(0, 10);
+		const todayDateString = `${this.todayDateString.slice(0, 10)}T00:00`;
 		this.calendarItems.forEach(elem => {
-			elem.classList.toggle('today', elem.getAttribute('data-date') === todayDateString);
 			const date = this.getDate(elem);
+			elem.classList.toggle('today', elem.getAttribute('data-date') === todayDateString);
 			if (this.minWeekDate && date < this.minWeekDate || this.maxWeekDate && date > this.maxWeekDate) {
 				elem.toggleAttribute('disabled', true);
 			}
@@ -270,11 +264,10 @@ export class CalendarSheet extends Widget {
 	}
 
 	private registerMonthsView() {
-		const todayMonthString = this.todayDateString.slice(0, 7);
+		const todayMonthString = `${this.todayDateString.slice(0, 7)}-01T00:00`;
 		this.calendarItems.forEach(elem => {
 			const date = this.getDate(elem);
-			const monthString = elem.getAttribute('data-date')?.slice(0, 7);
-			elem.classList.toggle('today', monthString === todayMonthString);
+			elem.classList.toggle('today', elem.getAttribute('data-date') === todayMonthString);
 			if (this.minMonthDate && date < this.minMonthDate || this.maxMonthDate && date > this.maxMonthDate) {
 				elem.toggleAttribute('disabled', true);
 			}
@@ -288,11 +281,10 @@ export class CalendarSheet extends Widget {
 	}
 
 	private registerYearsView() {
-		const todayYearString = this.todayDateString.slice(0, 4);
+		const todayYearString = `${this.todayDateString.slice(0, 4)}-01-01T00:00`;
 		this.calendarItems.forEach(elem => {
 			const date = this.getDate(elem);
-			const yearString = elem.getAttribute('data-date')?.slice(0, 4);
-			elem.classList.toggle('today', yearString === todayYearString);
+			elem.classList.toggle('today', elem.getAttribute('data-date') === todayYearString);
 			if (this.minYearDate && date < this.minYearDate || this.maxYearDate && date > this.maxYearDate) {
 				elem.toggleAttribute('disabled', true);
 			}
@@ -345,11 +337,11 @@ export class CalendarSheet extends Widget {
 				break;
 			case 'Enter':
 				if (this.preselectedDate) {
-					const dateString = this.asUTCDate(this.preselectedDate).toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10);
+					const dateString = this.asUTCDate(this.preselectedDate).toISOString().slice(0, 16);
 					element = this.element.querySelector(`.sheet-body li[data-date="${dateString}"]`);
 				} else {
 					const date = this.upperRange ? this.dateRange[1] : this.dateRange[0];
-					const dateString = date ? this.asUTCDate(date).toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10) : '';
+					const dateString = date ? this.asUTCDate(date).toISOString().slice(0, 16) : '';
 					element = this.element.querySelector(`.sheet-body li[data-date="${dateString}"]`);
 				}
 				if (element) {
@@ -390,13 +382,17 @@ export class CalendarSheet extends Widget {
 			[Direction.down, +10080],
 			[Direction.left, -1440],
 		]);
-		const nextDate = new Date(lastDate);
+		let nextDate: Date;
 		switch (this.viewMode) {
 		  case ViewMode.hours:
-			return new Date(lastDate.getTime() + 60000 * deltaHours.get(direction)!);
+			nextDate = new Date(lastDate.getTime() + 60000 * deltaHours.get(direction)!);
+			break;
 		  case ViewMode.weeks:
-			return new Date(lastDate.getTime() + 60000 * deltaWeeks.get(direction)!);
+			nextDate = new Date(lastDate.getTime() + 60000 * deltaWeeks.get(direction)!);
+			nextDate.setHours(0, 0, 0);
+			break;
 		  case ViewMode.months:
+			nextDate = new Date(lastDate);
 			switch (direction) {
 			  case Direction.up:
 				nextDate.setMonth(nextDate.getMonth() - 3);
@@ -411,8 +407,11 @@ export class CalendarSheet extends Widget {
 				nextDate.setMonth(nextDate.getMonth() - 1);
 				break;
 			}
+			nextDate.setDate(1);
+			nextDate.setHours(0, 0, 0);
 			break;
 		  case ViewMode.years:
+			nextDate = new Date(lastDate);
 			switch (direction) {
 			  case Direction.up:
 				nextDate.setFullYear(lastDate.getFullYear() - 4);
@@ -427,6 +426,9 @@ export class CalendarSheet extends Widget {
 				nextDate.setFullYear(lastDate.getFullYear() - 1);
 				break;
 			}
+			nextDate.setMonth(0);
+			nextDate.setDate(1);
+			nextDate.setHours(0, 0, 0);
 			break;
 		}
 		return nextDate;
@@ -480,20 +482,20 @@ export class CalendarSheet extends Widget {
 				dateString = utcDateString.slice(0, 16);
 				break;
 			case ViewMode.weeks:
-				dateString = utcDateString.slice(0, 10);
+				dateString = `${utcDateString.slice(0, 10)}T00:00`;
 				break;
 			case ViewMode.months:
-				dateString = `${utcDateString.slice(0, 7)}-01`;
+				dateString = `${utcDateString.slice(0, 7)}-01T00:00`;
 				break;
 			case ViewMode.years:
-				dateString = `${utcDateString.slice(0, 4)}-01-01`;
+				dateString = `${utcDateString.slice(0, 4)}-01-01T00:00`;
 				break;
 		}
 		return `li[data-date="${dateString}"]`;
 	}
 
 	private indexOfCalendarItem(date: Date) : number {
-		const dateSelector= this.getDateSelector(date);
+		const dateSelector = this.getDateSelector(date);
 		const selectedElement = this.element.querySelector(dateSelector);
 		return Array.from(this.calendarItems).indexOf(selectedElement as HTMLLIElement);
 	}
@@ -505,11 +507,6 @@ export class CalendarSheet extends Widget {
 			const hoverDateString = event.target.getAttribute('data-date') ?? event.target.getAttribute('aria-label') ?? '';
 			const hoverDate = new Date(hoverDateString);
 			this.markDateRange(this.dateRange[0], hoverDate, true);
-			if (hoverDate.getTime() > this.dateRange[0].getTime()) {
-				this.rangeSelectCssRule.style.cursor = this.contractRightCursor;
-			} else {
-				this.rangeSelectCssRule.style.cursor = this.contractLeftCursor;
-			}
 		}
 	};
 
@@ -600,7 +597,7 @@ export class CalendarSheet extends Widget {
 					this.calendarItems.item(upperIndex)?.classList.add('selected');
 				}
 			} else if (this.dateRange[0]) {
-				const dateSelector= this.getDateSelector(this.dateRange[0]);
+				const dateSelector = this.getDateSelector(this.dateRange[0]);
 				this.element.querySelector(dateSelector)?.classList.add('selected');
 			}
 			if (this.preselectedDate) {
@@ -614,7 +611,7 @@ export class CalendarSheet extends Widget {
 				);
 			}
 		} else if (this.dateRange[0]) {
-			const dateSelector= this.getDateSelector(this.dateRange[0]);
+			const dateSelector = this.getDateSelector(this.dateRange[0]);
 			this.element.querySelector(dateSelector)?.classList.add('selected');
 		}
 	}
@@ -692,7 +689,7 @@ export class CalendarSheet extends Widget {
 	}
 
 	private async selectToday() {
-		const todayDateString = this.todayDateString.slice(0, 10);
+		const todayDateString = this.todayDateString;
 		let todayElem = this.element.querySelector(`li[data-date="${todayDateString}"]`);
 		if (!todayElem) {
 			await this.fetchCalendar(new Date(), ViewMode.weeks);
@@ -778,7 +775,7 @@ export class CalendarSheet extends Widget {
 		}
 		const nextDate = this.getDelta(direction, selectedDate);
 		this.preselectedDate = this.settings.withRange ? nextDate : null;
-		const dataDateString = this.asUTCDate(nextDate).toISOString().slice(0, this.viewMode === ViewMode.hours ? 16 : 10);
+		const dataDateString = this.asUTCDate(nextDate).toISOString().slice(0, 16);
 		let nextItem: Element|null = null;
 		if (this.viewMode !== ViewMode.weeks || selectedDate.getMonth() === nextDate.getMonth()) {
 			nextItem = this.element.querySelector(`.sheet-body li[data-date="${dataDateString}"]`);
@@ -814,9 +811,11 @@ export class CalendarSheet extends Widget {
 		if (this.interval) {
 			query.set('interval', String(this.interval));
 		}
+		this.element.classList.add('loading');
 		const response = await fetch(`${this.endpoint}?${query.toString()}`, {
 			method: 'GET',
 		});
+		this.element.classList.remove('loading');
 		if (response.status === 200) {
 			this.element.innerHTML = await response.text();
 			if (this.settings.withRange) {
@@ -835,7 +834,7 @@ export class CalendarSheet extends Widget {
 		return [lower, upper];
 	}
 
-	private transferStyles() {
+	private transferStyles() : CSSStyleSheet {
 		const declaredStyles = document.createElement('style');
 		declaredStyles.innerText = styles;
 		document.head.appendChild(declaredStyles);
@@ -852,9 +851,13 @@ export class CalendarSheet extends Widget {
 			switch (cssRule.selectorText) {
 				case this.baseSelector:
 					extraStyles = StyleHelpers.extractStyles(inputElement, [
-						'background-color', 'border', 'border-radius',
 						'font-family', 'font-size', 'font-stretch', 'font-style', 'font-weight',
-						'letter-spacing', 'white-space', 'line-height']);
+						'letter-spacing', 'white-space', 'line-height'
+					]).concat(StyleHelpers.extractStyles(inputElement, {
+						'--border-style': 'border-style',
+						'--border-width': 'border-width',
+						'--border-radius': 'border-radius',
+					}));
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					loaded = true;
 					break;
@@ -866,27 +869,23 @@ export class CalendarSheet extends Widget {
 					extraStyles = StyleHelpers.extractStyles(inputElement, ['padding']);
 					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
 					break;
-				case `${this.baseSelector} .sheet-body ul.hours > li.constricted`:
-				case `${this.baseSelector} .sheet-body ul.hours > li:has(~ li.constricted)`:
-				case `${this.baseSelector} .sheet-body ul.hours > li.constricted ~ li`:
-				case `${this.baseSelector} .sheet-body ul.minutes`:
-					inputElement.classList.add('-focus-');
-					extraStyles = StyleHelpers.extractStyles(inputElement, ['border-color']);
-					sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
-					inputElement.classList.remove('-focus-');
-					if (cssRule.selectorText === `${this.baseSelector} .sheet-body ul.hours > li.constricted`) {
-						extraStyles = StyleHelpers.extractStyles(this.element, ['background-color']);
-						extraStyles = extraStyles.replace('background-color', 'border-bottom-color');
-						sheet.insertRule(`${cssRule.selectorText}{${extraStyles}}`, ++index);
-					}
-					break;
 				default:
 					break;
 			}
 		}
 		inputElement.style.transition = '';
+		StyleHelpers.pushMediaQueryStyles([[
+			sheet,
+			this.baseSelector,
+			{
+				'--border-color': 'border-color',
+				'--outline': 'outline',
+			},
+			inputElement,
+		]]);
 		if (!loaded)
 			throw new Error(`Could not load styles for ${this.baseSelector}`);
+		return sheet;
 	}
 
 	private getRangeSelectCssRule() : CSSStyleRule {
@@ -958,7 +957,7 @@ export class DateCalendarElement extends HTMLInputElement {
 
 		this[CAL] = new CalendarSheet(calendarElement as HTMLElement, settings);
 		if (this.value) {
-			this[CAL].updateDate(new Date(this.value), null);
+			this[CAL].updateDate(new Date(`${this.value}T00:00`), null);
 		}
 		this.hidden = true;
 	}
@@ -1022,8 +1021,8 @@ export class DateRangeCalendarElement extends HTMLInputElement {
 			pure: true,
 			updateDate: (lowerDate: Date, upperDate?: Date) => {
 				const dateStrings = [
-					lowerDate.toISOString().slice(0, 10),
-					upperDate?.toISOString().slice(0, 10) ?? '',
+					`${lowerDate.toISOString().slice(0, 10)}T00:00`,
+					upperDate ? `${upperDate.toISOString().slice(0, 10)}T00:00` : '',
 				];
 				this.value = dateStrings.join(';');
 				this.dispatchEvent(new Event('input'));

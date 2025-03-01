@@ -10,6 +10,7 @@ class PhoneNumberField {
 	private readonly textBox: HTMLElement;
 	private readonly editField: HTMLElement;
 	private readonly baseSelector = '[is="django-phone-number"]';
+	private readonly styleSheet: CSSStyleSheet;
 	private hasFocus = false;
 	private readonly defaultCountryCode: CountryCode | undefined;
 	private readonly mobileOnly: boolean;
@@ -20,7 +21,6 @@ class PhoneNumberField {
 	private readonly codeCountryMap: [string, CountryCallingCode, CountryCode][];
 	private isOpen = false;
 	private isPristine = true;
-	private possibleCallingCode: Element|null = null;
 	private cleanup = () => {};
 
 	constructor(element: HTMLInputElement) {
@@ -39,9 +39,7 @@ class PhoneNumberField {
 		this.internationalOpener = this.textBox.querySelector('.international-picker') as HTMLElement;
 		this.internationalSelector = this.textBox.nextElementSibling as HTMLElement;
 		this.countryLookupField = this.internationalSelector.querySelector('input[type="search"]') as HTMLInputElement;
-		if (!StyleHelpers.stylesAreInstalled(this.baseSelector)) {
-			this.transferStyles();
-		}
+		this.styleSheet = StyleHelpers.stylesAreInstalled(this.baseSelector) ?? this.transferStyles();
 		this.transferClasses();
 	}
 
@@ -333,7 +331,7 @@ class PhoneNumberField {
 		}
 	}
 
-	private transferStyles() {
+	private transferStyles() : CSSStyleSheet {
 		const declaredStyles = document.createElement('style');
 		let loaded = false;
 		declaredStyles.innerText = styles;
@@ -348,27 +346,31 @@ class PhoneNumberField {
 					loaded = true;
 					break;
 				case `${this.baseSelector} + [role="textbox"]`:
+					// extraStyles = StyleHelpers.extractStyles(this.inputElement, [
+					// 	'background-color', 'border', 'border-radius', 'color', 'outline', 'height', 'line-height',
+					// 	'padding',
+					// ]);
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
-						'background-color', 'border', 'border-radius', 'color', 'outline', 'height', 'line-height',
-						'padding',
-					]);
-					break;
-				case `${this.baseSelector} + [role="textbox"].focus`:
-					this.inputElement.classList.add('-focus-');
-					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
-						'background-color', 'border', 'box-shadow', 'color', 'outline', 'transition']);
-					this.inputElement.classList.remove('-focus-');
+						'line-height', 'padding',
+					]).concat(StyleHelpers.extractStyles(this.inputElement, {
+						'--border-style': 'border-style',
+						'--border-width': 'border-width',
+						'--border-radius': 'border-radius',
+					}));
 					break;
 				case `${this.baseSelector} + [role="textbox"] > .phone-number-edit`:
 					extraStyles = `line-height:${window.getComputedStyle(document.querySelector(selector)!).height};`;
 					break;
 				case `${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"]`:
-					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
-						'background-color', 'border-radius', 'color', 'line-height', 'padding']);
+					extraStyles = StyleHelpers.extractStyles(this.inputElement, ['line-height', 'padding']).concat(
+						`--border-style: ${window.getComputedStyle(this.inputElement).getPropertyValue('border-style')};`,
+						`--border-width: ${window.getComputedStyle(this.inputElement).getPropertyValue('border-width')};`,
+						`--border-radius: ${window.getComputedStyle(this.inputElement).getPropertyValue('border-radius')};`,
+					);
 					break;
 				case `${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"] input[type="search"]`:
 					extraStyles = StyleHelpers.extractStyles(this.inputElement, [
-						'background-color', 'border', 'border-radius', 'color', 'line-height', 'padding']);
+						'line-height', 'padding']);
 					break;
 				case `${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"] input[type="search"]:focus`:
 					this.inputElement.classList.add('-focus-');
@@ -389,15 +391,53 @@ class PhoneNumberField {
 		this.inputElement.style.transition = '';
 		if (!loaded)
 			throw new Error(`Could not load styles for ${this.baseSelector}`);
+		return declaredStyles.sheet as CSSStyleSheet;
 	}
 
 	private transferClasses() {
-		this.inputElement.classList.remove(...this.inputElement.classList);
 		this.inputElement.style.transition = '';
-		this.inputElement.hidden = true;  // setting type="hidden" prevents dispatching events
 	}
 
 	public initialize() {
+		// some styles change when switching light/dark mode, so we need to update them
+		StyleHelpers.pushMediaQueryStyles([[
+			this.styleSheet,
+			`${this.baseSelector} + [role="textbox"]`,
+			{
+				'--border-color': 'border-color',
+				'--outline': 'outline',
+			},
+			this.inputElement,
+		], [
+			this.styleSheet,
+			`${this.baseSelector} + [role="textbox"].focus`,
+			{
+				'border-color': 'border-color',
+				'box-shadow': 'box-shadow',
+				'outline': 'outline',
+			},
+			this.inputElement, '-focus-',
+		], [
+			this.styleSheet,
+			`${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"]`,
+			{
+				'--border-color': 'border-color',
+				'--outline': 'outline',
+			},
+			this.inputElement,
+		], [
+			this.styleSheet,
+			`${this.baseSelector} + [role="textbox"][aria-haspopup="dialog"] + [role="dialog"] input[type="search"]:focus`,
+			{
+				'border-color': 'border-color',
+				'box-shadow': 'box-shadow',
+				'outline': 'outline',
+				'transition': 'transition',
+			},
+			this.inputElement, '-focus-',
+		]], true);
+
+		this.inputElement.hidden = true;  // setting type="hidden" prevents dispatching events
 		this.installEventHandlers();
 		this.initializeValue(this.inputElement.defaultValue);
 	}

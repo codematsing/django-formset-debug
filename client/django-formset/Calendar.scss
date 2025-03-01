@@ -1,20 +1,33 @@
 @import "colors";
 
 .dj-calendar {
-	--dummy-style: none;  // required by Calendar.transferStyles()
+	background-color: var(--django-formset-background-color);
+	border: var(--border-width) var(--border-style) var(--border-color);
+	border-radius: var(--border-radius);
+	color: var(--django-formset-foreground-color);
+
+	&[role="dialog"] {
+		box-shadow: var(--border-color) 0 0 1rem;
+	}
 
 	[hidden] {
 		display: none !important;
+	}
+
+	&.loading * {
+		opacity: 0.75;
+		pointer-events: none;
 	}
 
 	.controls {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		border-bottom: 1px solid lightgrey;
+		border-bottom: 1px solid var(--border-color);
 
 		button {
 			display: inline-flex;
+			color: inherit;
 			background-color: transparent;
 			border: none;
 			padding: 0;
@@ -23,7 +36,7 @@
 				flex-grow: 1;
 			}
 			&:hover {
-				background-color: $calendar-hover-background-color;
+				background-color: $active-item-background-color;
 			}
 			> svg {
 				margin: 0 auto;
@@ -61,20 +74,18 @@
 		}
 		.aside-left {
 			&:has(> time:not(:empty)) {
-				background-color: $calendar-selected-background-color;
+				background-color: $selected-item-background-color;
 			}
 			> time:not(:empty) {
-				color: white;
 				transform: rotate(-90deg) translate(-140px, 24px);
 				transform-origin: bottom left;
 			}
 		}
 		.aside-right {
 			&:has(> time:not(:empty)) {
-				background-color: $calendar-selected-background-color;
+				background-color: $selected-item-background-color;
 			}
 			> time:not(:empty) {
-				color: white;
 				transform: rotate(90deg) translate(30px, -24px);
 				transform-origin: top left;
 			}
@@ -99,7 +110,7 @@
 
 			> li {
 				&.preselected {
-					outline: 2px solid $calendar-selected-background-color;
+					outline: 2px solid $selected-item-background-color;
 				}
 			}
 
@@ -108,23 +119,23 @@
 				margin-bottom: 2px;
 
 				> li.constricted {
-					border: 2px solid lightgrey;
-					border-bottom-color: white;
+					border: 2px solid $selected-item-border-color;
+					border-bottom-color: var(--django-formset-background-color);
 					border-bottom-width: 2px;
 					border-top-left-radius: 5px;
 					border-top-right-radius: 5px;
 				}
 				> li:has(~ li.constricted) {
-					border-bottom: 2px solid lightgrey;
+					border-bottom: 2px solid $selected-item-border-color;
 				}
 				> li.constricted ~ li {
-					border-bottom: 2px solid lightgrey;
+					border-bottom: 2px solid $selected-item-border-color;
 				}
 			}
 
 			&.minutes {
 				font-size: smaller;
-				border: 2px solid lightgrey;
+				border: 2px solid $selected-item-border-color;
 				margin: -4px 0 4px;
 				padding: 0;
 				line-height: inherit;
@@ -133,7 +144,7 @@
 					width: inherit;
 					&.preselected {
 						// add bg-color to distinguish from outlines
-						background-color: $calendar-hover-background-color;
+						background-color: $active-item-background-color;
 					}
 				}
 			}
@@ -143,7 +154,7 @@
 
 				> li {
 					&.adjacent {
-						color: $calendar-adjacent-color;
+						color: $semimuted-item-color;
 					}
 				}
 			}
@@ -168,11 +179,10 @@
 					cursor: pointer;
 
 					&.selected {
-						background-color: $calendar-selected-background-color;
-						color: $calendar-selected-color;
+						background-color: $selected-item-background-color;
 
 						&.today::after {
-							border-color: transparent transparent $calendar-selected-color transparent;
+							border-color: transparent transparent var(--django-formset-background-color) transparent;
 						}
 					}
 
@@ -182,7 +192,7 @@
 
 					&:not([disabled]):hover {
 						opacity: 1;
-						background-color: $calendar-hover-background-color !important;
+						background-color: $active-item-background-color !important;
 					}
 				}
 			}
@@ -196,7 +206,7 @@
 					right: 0;
 					border-style: solid;
 					border-width: 0 0 10px 10px;
-					border-color: transparent transparent $calendar-selected-background-color transparent;
+					border-color: transparent transparent $selected-item-background-color transparent;
 				}
 			}
 		}
@@ -219,7 +229,6 @@
 
 // Calendar popup dialog
 [aria-haspopup="dialog"] + .dj-calendar {
-	box-shadow: lightgray 0 0 1rem;
 	width: max-content;
 	position: absolute;
 	top: 0;

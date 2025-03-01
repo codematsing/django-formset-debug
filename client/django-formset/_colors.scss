@@ -1,32 +1,21 @@
-// border colors
-$django-formset-alert: #ff0300;
-$django-formset-warning: #ffa500;
-$django-formset-success: #007a00;
+@use "sass:color";
 
-// Selectize
-$select-color-highlight: rgba(255, 237, 40, 0.4);
-$select-color-dropdown: rgb(248, 248, 248);
-$selected-items-border-color: rgba(0, 0, 0, 0.15);
-$selected-items-background-color: rgb(224, 236, 244);
-$active-items-background-color: rgba(0, 0, 0, 0.05);
+// base inform colors
+$django-formset-alert: rgb(255, 3, 0);
+$django-formset-warning: rgb(255, 165, 0);
+$django-formset-success: rgb(0, 122, 0);
 
-// RichTextArea
-$richtext-button-active: rgba(0, 0, 0, 0.1);
-$richtext-button-opacity: 0.5;
-$richtext-placeholder: rgba(0, 0, 0, 0.2);
-$richtext-code-block: rgba(0, 0, 0, 0.03);
-$richtext-output: rgba(0, 0, 0, 0.7);
-$richtext-footnote-color: rgb(13, 110, 253);
+// Selectize, PhoneNumber, Calendar, DateTime
+$select-color-highlight: light-dark(hsl(51, 96%, 89%),  hsl(51, 96%, 45%));
+$selected-item-background-color: light-dark(hsl(213, 96%, 64%), hsl(213, 96%, 36%));
+$selected-item-border-color: light-dark(hsl(213, 96%, 42%), hsl(213, 96%, 58%));
+$active-item-background-color: color-mix(in srgb, color-mix(in oklab, $selected-item-background-color, var(--django-formset-fg-color) 20%), var(--django-formset-background-color) 80%);
+$muted-item-color: color-mix(in srgb, currentcolor, var(--django-formset-background-color) 50%);
+$semimuted-item-color: color-mix(in srgb, currentcolor, var(--django-formset-background-color) 30%);
 
 // Calendar
-$calendar-hover-background-color: rgb(224, 236, 244);
-$calendar-selected-background-color: rgb(13, 110, 253);
-$calendar-range-background-color: rgb(185, 246, 255);
-$calendar-selected-color: white;
-$calendar-adjacent-color: rgb(96, 96, 96);
-$calendar-delimiter-color: rgb(96, 96, 96);
+$calendar-range-background-color: color-mix(in srgb, $selected-item-background-color, var(--django-formset-background-color) 50%);
 
-@use "sass:color";
 $django-formset-color-invalid: 'rgb(' + #{color.red($django-formset-alert), color.green($django-formset-alert), color.blue($django-formset-alert)} + ')';
 $django-formset-color-warning: 'rgb(' + #{color.red($django-formset-warning), color.green($django-formset-warning), color.blue($django-formset-warning)} + ')';
 $django-formset-shadow-invalid: 'rgb(' + #{color.red($django-formset-alert), color.green($django-formset-alert), color.blue($django-formset-alert)} + ', 0.25)';

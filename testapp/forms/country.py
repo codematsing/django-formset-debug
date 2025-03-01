@@ -14,7 +14,6 @@ class CountryForm(forms.Form):
         widget=CountrySelectize,
         choices=countries,
     )
-
     many_countries = fields.MultipleChoiceField(
         label="Multiple Countries",
         widget=CountrySelectizeMultiple(max_items=8),

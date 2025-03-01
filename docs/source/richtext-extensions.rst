@@ -12,18 +12,20 @@ difficulty arises when you want to set more than one property on a certain parag
 
 Take for instance the hyperlink, the most basic implementation requires two fields: the URL and the
 text to display. But some implementers might want to set more properties, such as the rel_, the
-target_ attribute or they want to link onto phone numbers, email addresses or to downloadable files.
-Moreover, if the Richtext editor shall be used in a CMS or an e-commerce site, one might want to
-set a link to an internal CMS page or a product, to keep referential integrity which is impossible
-when just using a plain URL.
+target_ attribute, or they want to link onto phone numbers, email addresses or to downloadable
+files. Moreover, if the Richtext editor shall be used in a content management system or an
+e-commerce site, one might want to set a link to an internal CMS page or a product, in order to keep
+its referential integrity. In such a dialog form, the user then can select the page or the product
+out of a list of available options, instead of entering the URL that that page manually. This
+requires a ModelChoiceField_, something usually not available from an off the shelf implementation.
 
-As another example consider adding an image element to the Richtext editor. A typical off-the-shelf
-implementation would offer a file upload area and a few additional fields to set the image's width,
-height and alt tags. The image's payload then is stored as a base64 encoded string in the editor's
-document state, which should be considered as anti-pattern. So what if instead the implementer wants
-to store the image as a file and the meta-data in a separate database table? Here is where
-**django-formset** offers a flexible way to create your own custom dialog forms to extend the
-Richtext editor with your own needs.
+As another example consider adding an image element to the Richtext editor. A typical ready made
+solution such as TinyMCE_ would offer a file upload area and a few additional fields to set the
+image's width, height and alt tags. The image's payload then often is encoded as a base64 string in
+the editor's document state. So what if instead the implementer wants to store the image as a file
+in its media directory and the meta-data in a separate database table? Here is where
+**django-formset** offers a flexible way to create custom dialog forms and to extend the Richtext
+editor with your own needs.
 
 So the basic idea is to allow the implementer to extend the Richtext editor with custom dialog forms
 based on the same principles as the built-in :ref:`dialog-forms`. This way the implementer can
@@ -31,13 +33,14 @@ combine any fields and widgets to create a dialog form which fits his exact need
 then can be attached to the Richtext editor as a control element, which can be used to set the
 properties of a certain node or mark element.
 
-
-This requires a dialog
-form to be shown, where the user can select a page or product and select this out of a list of
-available options.
-
 .. _rel: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#rel
 .. _target: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#target
+.. _ModelChoiceField: https://docs.djangoproject.com/en/stable/ref/forms/fields/#django.forms.ModelChoiceField
+.. _TinyMCE: https://www.tiny.cloud/docs/tinymce/latest/full-featured-open-source-demo/
+
+
+Creating a custom hyperlink editor
+==================================
 
 As we can see, there are many use cases where the implementer might want to extend the Richtext
 editor with a custom dialog form adopted to his exact needs. In this example we show how to create a
@@ -87,6 +90,7 @@ using the :ref:`selectize`.
 	            'richtext-map-from': 'href',
 	            'df-show': '.link_type == "external"',
 	            'df-require': '.link_type == "external"',
+	            'placeholder': "https://www.example.com",
 	        }),
 	    )
 	    page = models.ModelChoiceField(
@@ -119,7 +123,7 @@ of the field and vice versa.
 This choice field is used to select the type of the link, which can either be an external link
 specified by an URL, or an internal link specified by the primary key of an object of type
 ``PageModel``. The value of this field is not stored in the Richtext editor's document state,
-therefore we use a functional snippets to map the document state's value to the dialog form's field:
+therefore we use a functional snippet to map the document state's value to the dialog form's field:
 
 .. code-block:: javascript
 
@@ -179,22 +183,27 @@ The attribute ``'df-require': '.link_type == "internal"'`` tells the editor to m
 optional if the link type is not set to "internal". Otherwise, with link type set to "external", the
 form validation would fail, since then this field is hidden.
 
-We then can attach this dialog form to our ``RichTextarea`` widget by adding it to the list of
-control elements.
+Finally we can attach this dialog form to our ``RichTextarea`` widget by adding it to the list of
+control elements:
 
 .. django-view:: pages_form
 
 	from django.forms import fields, forms
 
 	class PagesForm(forms.Form):
-	    text = fields.CharField(widget=RichTextarea(control_elements=[
-	        controls.Bold(),
-	        controls.Italic(),
-	        controls.DialogControl(
-	            CustomHyperlinkDialogForm(),
-	            icon='formset/icons/link.svg',
-	        ),
-	    ]))
+	    text = fields.CharField(widget=RichTextarea(
+	        control_elements=[
+	            controls.Bold(),
+	            controls.Italic(),
+	            controls.DialogControl(
+	                CustomHyperlinkDialogForm(),
+	                icon='formset/icons/link.svg',
+	            ),
+	        ],
+	        attrs={
+	            'use_json': True,
+	        },
+	    ))
 
 Apart from the custom hyperlink dialog form this editor has another two control elements, namely
 Bold and Italic. They have been added for demonstration purposes only.
@@ -315,9 +324,9 @@ This extra attribute is used to map the editor's document state back to the dial
 value. It is applied whenever the user opens the dialog form for an existing mark or node element in
 the editor. This attribute can take two types of values:
 
-* A key value. This is used to map the editor's document state using a key and map it to the field
-  of the dialog form with the given name.
-* A functional expression. This is used to map the editor's document state using a JavaScript
+* **A key value**. This is used to map the editor's document state using a key and map it to the
+  field of the dialog form with the given name.
+* **A functional expression**. This is used to map the editor's document state using a JavaScript
   lambda function. This snippet has access to all attributes of the editor's document state and must
   return a value to be mapped onto the given field of the dialog form. Accessing the values of the
   attributes can only be achieved using ``attributes.…`` inside the snippet.
@@ -325,6 +334,17 @@ the editor. This attribute can take two types of values:
   Example: ``{dataset: {fileupload: JSON.stringify(attributes.dataset)}}`` maps the value of the
   attribute ``dataset`` of the editor's document state to the ``dataset`` attribute of the
   associated input field in the form dialog. 
+
+.. hint:: **In order to better understand these mappings, try the Richtext editor above:**
+
+	Enter some text, select a part of it and click on the link icon. A dialog form will open where
+	you can set a link type and the URL. Click on "Apply" and the link will be set. Submit the form
+	and examine the submitted POST data. You will see a "mark" with type ``custom_hyperlink``.
+	This mark element then contains the attributes ``href`` and ``page_id``. The value of the
+	``href`` attribute is the URL you have entered, the value of the ``page_id`` attribute is the
+	primary key of the selected page. Depending on the link type you have selected, one of these
+	attributes is set, the other one is empty. The link type itself is not stored in the document's
+	payload.
 
 
 Rendering the content

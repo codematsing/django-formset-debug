@@ -20,6 +20,7 @@ Django's counterparts.
 	django-formset
 	single-form
 	styling
+	dark-mode
 	default-widgets
 	alternative-widgets
 	buttons
@@ -36,6 +37,7 @@ Django's counterparts.
 	dual-selector
 	dialog-forms
 	dialog-model-forms
+	form-stepper
 	richtext
 	richtext-extensions
 	slug-input
@@ -61,11 +63,3 @@ License
 =======
 
 **django-formset** is licensed according to the MIT public license.
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

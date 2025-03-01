@@ -5,7 +5,6 @@ from pathlib import Path
 from playwright.sync_api import expect
 from time import sleep
 
-from django.conf import settings
 from django.core.signing import get_cookie_signer
 from django.urls import path
 
@@ -28,16 +27,16 @@ urlpatterns.append(get_javascript_catalog())
 
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
-def test_upload_image(page, mocker, viewname):
+def test_upload_image(page, mocker, settings, viewname):
     choose_file_button = page.locator('django-formset .dj-form button.dj-choose-file')
     expect(choose_file_button).to_be_visible()  # that button would open the file selector
     dropbox = page.locator('django-formset .dj-form figure.dj-dropbox')
     expect(dropbox.locator('div.dj-empty-item')).to_have_text("Drag file here")
+    expect(dropbox.locator('img')).not_to_be_visible()
     page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
-    img_element = dropbox.locator('img')
-    expect(img_element).to_be_visible()
+    img_element = dropbox.locator('img[src^="/media/"]')
     img_src = img_element.get_attribute('src')
-    match = re.match(r'^/media/((upload_temp/python-django[_A-Za-z0-9]*?)_h128(.png))$', img_src)
+    match = re.match(r'^/media/((upload_temp/python-django[_A-Za-z0-9]*?)_h\d+(.png))$', img_src)
     assert match is not None
     thumbnail_url = match.group(1)
     assert (settings.MEDIA_ROOT / thumbnail_url).exists()  # the thumbnail
@@ -166,11 +165,13 @@ def test_upload_in_progress(page, viewname):
     error_placeholder = field_group.locator('.dj-errorlist .dj-placeholder')
     expect(error_placeholder).to_have_text("File upload still in progress.")
 
+
 @pytest.mark.xfail(reason="Playwright does not abort route since version 1.31")
 @pytest.mark.urls(__name__)
 @pytest.mark.parametrize('viewname', ['upload'])
 def test_interrupt_upload(page, viewname):
     page.route('/upload', lambda route: route.abort())
     page.set_input_files('#id_avatar', 'testapp/assets/python-django.png')
+    sleep(1)
     error_placeholder = page.locator('django-formset [role="group"] .dj-errorlist .dj-placeholder')
     expect(error_placeholder).to_have_text("File upload failed.")

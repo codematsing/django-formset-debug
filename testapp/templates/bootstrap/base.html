@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html dir="ltr" lang="{{ LANGUAGE_CODE|default:'en' }}">
+<html dir="ltr" lang="{{ LANGUAGE_CODE|default:'en' }}" data-bs-theme="auto">
 
 <head>
 	{% block "head" %}
@@ -11,6 +11,7 @@
 	<link href="{% static 'testapp/css/bootstrap.css' %}" rel="stylesheet" type="text/css" media="screen">
 	<link href="{% static 'testapp/css/utils.css' %}" rel="stylesheet" type="text/css" media="screen">
 	<script src="{% url 'javascript-catalog' %}"></script>
+	<script src="{% static 'testapp/js/bootstrap-auto-dark-mode.js' %}"></script>
 	<script type="module" src="{% static 'formset/js/django-formset.js' %}"></script>
 	{% endblock %}
 </head>

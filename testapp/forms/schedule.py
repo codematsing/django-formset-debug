@@ -16,8 +16,8 @@ class ScheduleCalendarForm(forms.Form):
             'step': timedelta(minutes=10),
         }),
         initial=(
-            datetime(2023, 10, 9, 9, 40),
-            datetime(2023, 10, 10, 16, 10),
+            datetime(2024, 9, 9, 9, 40),
+            datetime(2024, 10, 10, 16, 10),
         ),
     )
 
@@ -28,7 +28,7 @@ class SchedulePickerForm(forms.Form):
             'step': timedelta(minutes=10),
         }),
         initial=(
-            datetime(2023, 10, 10, 9, 40),
-            datetime(2023, 10, 10, 16, 10),
+            datetime(2024, 9, 9, 9, 40),
+            datetime(2024, 10, 10, 16, 10),
         ),
     )

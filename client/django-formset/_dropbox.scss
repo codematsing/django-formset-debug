@@ -3,18 +3,17 @@
 		all: unset;
 		display: inline-flex;
 		align-items: center;
-		justify-content: space-between;
-		background-color: whitesmoke;
-		margin: 0 0 0.25rem 0.25rem;
-		padding: 0;
-		list-style: none;
+		justify-content: flex-start;
+		background-color: color-mix(in srgb, var(--django-formset-background-color), currentcolor 5%);
+		padding: 1px;
 		height: 8rem;
-		min-width: 8rem;
-		outline: grey thin dotted;
+		max-width: 100%;
+		outline: rgb(128, 128, 128) thin dotted;
 
 		> div.dj-empty-item {
 			flex-grow: 1;
 			text-align: center;
+			min-width: 8rem;
 			height: auto;
 			p {
 				padding-left: 0.5rem;
@@ -24,18 +23,18 @@
 
 		> img {
 			all: unset;
-			flex-grow: 1;
 			display: block;
-			height: inherit;
-			max-width: calc(100% - 12rem);
+			height: 100%;
 		}
 
 		> figcaption {
 			all: unset;
-			padding: 0.25rem 0.5rem;
-			background-color: white;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-around;
 			overflow-x: hidden;
-			min-width: 12rem;
+			margin: 0 0.5rem;
+			height: 100%;
 
 			dl {
 				font-size: small;
@@ -46,20 +45,26 @@
 				}
 			}
 
-			.dj-delete-file, .dj-download-file {
-				font-weight: bold;
-				display: inline-block;
-				cursor: pointer;
-				text-decoration: none;
+			> div {
+				display: flex;
+				justify-content: space-between;
+				margin-top: 0.25rem;
+				margin-bottom: 0.25rem;
 
-				&:hover {
-					text-decoration: underline;
+				.dj-delete-file, .dj-download-file {
+					font-weight: bold;
+					display: inline-block;
+					cursor: pointer;
+					text-decoration: none;
+
+					&:hover {
+						text-decoration: underline;
+					}
 				}
 			}
 
 			.dj-download-file {
-				margin-left: 1rem;
-				float: right;
+				margin-left: 2rem;
 			}
 
 		}

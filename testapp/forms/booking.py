@@ -13,8 +13,8 @@ class BookingCalendarForm(forms.Form):
     date_range = DateRangeField(
         widget=DateRangeCalendar(),
         initial=[
-            date(2023, 5, 18),
-            date(2023, 10, 12),
+            date(2024, 5, 18),
+            date(2024, 10, 12),
         ],
     )
 

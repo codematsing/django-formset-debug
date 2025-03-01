@@ -164,12 +164,13 @@ Filtering Select Options
 
 As we have seen in the previous example, even grouping too many options might not be a user-friendly
 solution. This is because the user has to type a string, at least partially. So the user already
-must know what he’s looking for. This approach is not always practical. Many of the counties share
-the same name. For instance, there are 34 counties named “Washington”, 26 named “Franklin” and 24
-named “Lincoln”. Using an auto-select field, would just show a long list of eponymous county names.
+must know what he’s looking for, but this approach is not always practical. Many of the counties
+share the same name. For instance, there are 34 counties named “Washington”, 26 named “Franklin” and
+24 named “Lincoln”. Using an auto-select field, would just show a long list of eponymous county
+names.
 
 In many use cases, the user usually knows in which state the desired county is located. So it would
-be practical if the selection field offers a reduced set of options, namely the counties of just
+be useful if the selection field offers a reduced set of options, namely the counties of just
 that state. Therefore let's create a form with adjacent fields for preselecting options:
 
 .. django-view:: filtered_county_form
@@ -348,3 +349,18 @@ self-contained JavaScript library compiled out of TypeScript.
 
 .. _Tom-Select: https://tom-select.js.org/
 .. _Selectize.js: https://selectize.dev/
+
+
+Adding extra Options on the Fly
+===============================
+
+In some cases, the user might not find the desired option in the list of choices. For this use-case
+the Tom-Select library offers a feature to `add new options on the fly`_. In the context of Django
+models such a feature could only be offered with limited functionality, because the user then could
+only add a single string to the referenced model.
+
+Instead, **django-formset** offers a more flexible solution. By adding a button to a collection,
+which opens a form dialog, the user can create a new instance with all required model fields.
+For details please refer to the page on :ref:`dialog-model-forms`.
+
+.. _add new options on the fly: https://tom-select.js.org/examples/create-filter/

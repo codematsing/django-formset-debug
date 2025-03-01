@@ -1,29 +1,99 @@
 export namespace StyleHelpers {
-	export function extractStyles(element: Element, properties: Array<string>): string {
+	let pseudoStyleSheet: CSSStyleSheet|null = null;
+	const styleElement = document.createElement('style');
+	const mediaQueryStyles = Array<[Function[], boolean]>();
+	const observer = new MutationObserver(themeHasChanged);
+	observer.observe(document.documentElement, {attributes: true});
+	observer.observe(document.body, {attributes: true});
+	window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', stylesHaveChanged);
+
+	export function extractStyles(element: Element, properties: Array<string>|{[key: string]: string}): string {
 		let styles = Array<string>();
 		const style = window.getComputedStyle(element);
-		for (let property of properties) {
-			styles.push(`${property}:${style.getPropertyValue(property)}`);
+		if (Array.isArray(properties)) {
+			for (let property of properties) {
+				styles.push(`${property}:${style.getPropertyValue(property)}`);
+			}
+		} else {
+			for (let [property, key] of Object.entries(properties)) {
+				styles.push(`${property}:${style.getPropertyValue(key)}`);
+			}
 		}
-		return styles.join('; ').concat('; ');
+		return styles.join(';').concat(';');
 	}
 
-	export function convertPseudoClasses() : HTMLStyleElement {
+	export function mutableStyles(sheet: CSSStyleSheet, selector: string, properties: {[key: string]: string}, element: HTMLElement, extraCssClass?: string) : Function {
+		const setStyles = () => {
+			const transition = window.getComputedStyle(element).getPropertyValue('transition');
+			const hidden = element.hidden;
+			element.style.transition = 'none';  // temporarily disable transitions
+			element.hidden = false;  // temporarily make element visible to pilfer styles
+			if (extraCssClass) {
+				element.classList.add(extraCssClass);
+			}
+			const style = Object.entries(properties).map(([property, value]) => {
+				return `${property}:${window.getComputedStyle(element).getPropertyValue(value)};`;
+			}).join('');
+			if (extraCssClass) {
+				element.classList.remove(extraCssClass);
+			}
+			element.hidden = hidden;  // restore visibility
+			element.style.transition = transition;  // restore transitions
+			return style;
+		};
+		const ruleIndex = sheet.insertRule(`${selector}{${setStyles()}}`, sheet.cssRules.length);
+		return () => {
+			sheet.deleteRule(ruleIndex);
+			sheet.insertRule(`${selector}{${setStyles()}}`, ruleIndex);
+		};
+	}
+
+	export function pushMediaQueryStyles(styles: Array<[sheet: CSSStyleSheet, selector: string, properties: {[key: string]: string}, element: HTMLElement, extraCssClass?: string]>, withPseudoStyles: boolean = false) {
+		mediaQueryStyles.push([
+			styles.map(([sheet, selector, properties, element, extraCssClass]) =>
+				mutableStyles(sheet, selector, properties, element, extraCssClass)
+			),
+			withPseudoStyles,
+		]);
+	}
+
+	function stylesHaveChanged() {
+		mediaQueryStyles.forEach(([styleModifiers, withPseudoStyles]) => {
+			if (withPseudoStyles) {
+				attachPseudoStyles();
+			}
+			styleModifiers.forEach(update => update());
+			if (withPseudoStyles) {
+				detachPseudoStyles();
+			}
+		});
+	}
+
+	function themeHasChanged(mutationList: MutationRecord[], observer: MutationObserver) {
+		// this observer is triggered whenever the attribute containing substring "theme" is changed on the body element
+		mutationList.forEach((mutation) => {
+			if (mutation.type === 'attributes' && mutation.attributeName?.includes('theme')) {
+				stylesHaveChanged();
+			}
+		});
+	}
+
+	function convertPseudoClasses() {
 		// Iterate over all style sheets, find most pseudo classes and add CSSRules with a
 		// CSS selector where the pseudo class has been replaced by a real counterpart.
 		// This is required, because browsers can not invoke `window.getComputedStyle(element)`
 		// using pseudo classes.
-		// With function `removeConvertedClasses()` the added CSSRules are removed again.
+		if (!pseudoStyleSheet)
+			throw new Error('Style Sheet is not initialized');
+
 		const numStyleSheets = document.styleSheets.length;
-		const styleElement = document.createElement('style');
-		document.head.appendChild(styleElement);
 		for (let index = 0; index < numStyleSheets; index++) {
 			const sheet = document.styleSheets[index];
 			try {
 				for (let k = 0; k < sheet.cssRules.length; k++) {
 					const cssRule = sheet.cssRules.item(k);
 					if (cssRule) {
-						traverseStyles(cssRule, styleElement.sheet as CSSStyleSheet);
+						traverseStyles(cssRule, pseudoStyleSheet);
 					}
 				}
 			} catch (e) {
@@ -34,17 +104,39 @@ export namespace StyleHelpers {
 				}
 			}
 		}
-		return styleElement;
 	}
 
-	export function stylesAreInstalled(baseSelector: string) : boolean {
-		// check if styles have been loaded for this widget
+	export function attachPseudoStyles() {
+		document.head.appendChild(styleElement);
+		if (pseudoStyleSheet === null) {
+			pseudoStyleSheet = styleElement.sheet as CSSStyleSheet;
+			convertPseudoClasses();
+		} else {
+			while (styleElement.sheet?.cssRules.length) {
+				styleElement.sheet?.deleteRule(0);
+			}
+			for (let index = 0; index < pseudoStyleSheet.cssRules.length; index++) {
+				const cssText = pseudoStyleSheet.cssRules.item(index)?.cssText;
+				if (cssText) {
+					styleElement.sheet?.insertRule(cssText);
+				}
+			}
+		}
+	}
+
+	export function detachPseudoStyles() {
+		document.head.removeChild(styleElement);
+	}
+
+	export function stylesAreInstalled(baseSelector: string) : CSSStyleSheet|null {
+		// check if styles have been loaded for this widget and return the CSSStyleSheet
 		for (let k = document.styleSheets.length - 1; k >= 0; --k) {
 			const cssRule = document?.styleSheets?.item(k)?.cssRules?.item(0);
-			if (cssRule instanceof CSSStyleRule && cssRule.selectorText.trim() === baseSelector)
-				return true;
+			if (cssRule instanceof CSSStyleRule && cssRule.selectorText.trim() === baseSelector) {
+				return document.styleSheets.item(k);
+			}
 		}
-		return false;
+		return null;
 	}
 
 	function traverseStyles(cssRule: CSSRule, extraCSSStyleSheet: CSSStyleSheet) {
@@ -80,5 +172,12 @@ export namespace StyleHelpers {
 				extraCSSStyleSheet.insertRule(`${newSelectorText}{${cssRule.style.cssText}}`);
 			}
 		} // else handle other CSSRule types
+	}
+}
+
+export function assert(condition: any, message?: string) {
+	if (!condition) {
+		message = message ? `Assertion failed: ${message}` : "Assertion failed";
+		throw new Error(message);
 	}
 }

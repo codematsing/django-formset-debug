@@ -4,6 +4,7 @@ from django.db.models.fields.files import FieldFile
 from django.forms import boundfield
 from django.forms.fields import FileField, JSONField
 from django.utils.functional import cached_property
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from formset.fields import Activator, FileFieldMixin
@@ -32,6 +33,8 @@ class BoundField(boundfield.BoundField):
 
     @property
     def errors(self):
+        if isinstance(self.field, Activator):
+            return ''  # submitted value of an Activator can not be validated, hence errors are not applicable
         errors = self.form.errors.get(self.name, self.form.error_class())
         errors.client_messages = self._get_client_messages()
         return errors
@@ -61,18 +64,10 @@ class BoundField(boundfield.BoundField):
             renderer=self.form.renderer,
         )
 
-    def build_widget_attrs(self, attrs, widget=None):
-        attrs = super().build_widget_attrs(attrs, widget)
-        if hasattr(self.form, 'form_id'):
-            attrs['form'] = self.form.form_id
-        if hasattr(self.field, 'regex'):
-            attrs['pattern'] = self.field.regex.pattern
-        if isinstance(self.field, JSONField):
-            attrs['use_json'] = True
+    def label_tag(self, **kwargs):
         if isinstance(self.field, Activator):
-            label = self.name.replace('_', ' ').title() if self.field.label is None else self.field.label
-            attrs['label'] = label  # remember label for ButtonWidget.get_context()
-        return attrs
+            return ''  # label of an Activator is placed inside its widget
+        return super().label_tag(**kwargs)
 
     def css_classes(self, extra_classes=None):
         """
@@ -95,6 +90,19 @@ class BoundField(boundfield.BoundField):
         else:
             extra_classes.add(field_css_classes)
         return super().css_classes(extra_classes)
+
+    def build_widget_attrs(self, attrs, widget=None):
+        attrs = super().build_widget_attrs(attrs, widget)
+        if hasattr(self.form, 'form_id'):
+            attrs['form'] = self.form.form_id
+        if hasattr(self.field, 'regex'):
+            attrs['pattern'] = self.field.regex.pattern
+        if isinstance(self.field, JSONField):
+            attrs['use_json'] = True
+        if isinstance(self.field, Activator):
+            label = self.name.replace('_', ' ').title() if self.field.label is None else self.field.label
+            attrs['label'] = label  # remember label for ButtonWidget.get_context()
+        return attrs
 
     @cached_property
     def widget_type(self):
@@ -120,6 +128,30 @@ class BoundField(boundfield.BoundField):
         if isinstance(value, FieldFile):
             return get_file_info(value)
         return value
+
+    def __str__(self):
+        """Render this field as an HTML widget or as fieldset with widgets."""
+        fieldset_name = next(iter(self.name.split('.')))
+        if fieldset_name in self.form.declared_fieldsets:
+            if self.name in self.renderer._rendered_fields:
+                if self.renderer._rendered_fields[self.name]:
+                    return ''  # field already rendered
+            else:
+                return self._render_fieldset(fieldset_name)
+        return super().__str__()
+
+    def _render_fieldset(self, fieldset_name):
+        fieldset = self.form.declared_fieldsets[fieldset_name]
+        field_names = [f'{fieldset_name}.{field_name}' for field_name in fieldset.declared_fields.keys()]
+        context = fieldset.get_context()
+        context.update(
+            name=fieldset_name,
+            fields=[self.form[field_name] for field_name in field_names],
+        )
+        self.renderer._rendered_fields.update({field_name: False for field_name in field_names})
+        rendered = mark_safe(self.renderer.render(fieldset.template_name, context))
+        self.renderer._rendered_fields.update({field_name: True for field_name in field_names})
+        return rendered
 
     def _get_client_messages(self):
         """

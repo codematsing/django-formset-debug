@@ -40,7 +40,9 @@ class FormRenderer(DefaultFormRenderer):
         variant = context['widget']['variant']
         if not isinstance(variant, ButtonVariant):
             variant = 'outline-secondary'
-        context['widget']['attrs']['class'] = ClassList(f'btn btn-{variant}')
+        class_list = ClassList(context['widget']['attrs'].get('class'))
+        class_list.add(f'btn btn-{variant}')
+        context['widget']['attrs']['class'] = class_list
         context['icon_class'] = ' me-3' if context['icon_left'] else ' ms-3'
         return context
 

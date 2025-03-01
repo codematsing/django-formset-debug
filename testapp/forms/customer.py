@@ -1,23 +1,21 @@
-from django.forms import fields, forms
+from django.forms import fields
 
 from formset.fieldset import Fieldset
-from formset.collection import FormCollection
+from formset.form import Form
 
 
-class CustomerForm(Fieldset):
+class CustomerFieldset(Fieldset):
     legend = "Customer"
-    hide_condition = 'register.no_customer'
+    hide_condition = 'no_customer'
 
     name = fields.CharField(
         label="Recipient",
         max_length=100,
     )
-
     address = fields.CharField(
         label="Address",
         max_length=100,
     )
-
     phone_number = fields.RegexField(
         r'^\+?[ 0-9.\-]{4,25}$',
         label="Phone Number",
@@ -26,14 +24,9 @@ class CustomerForm(Fieldset):
     )
 
 
-class RegisterForm(forms.Form):
+class CustomerForm(Form):
+    customer = CustomerFieldset()
     no_customer = fields.BooleanField(
         label="I'm not a customer",
         required=False,
     )
-
-
-class CustomerCollection(FormCollection):
-    customer = CustomerForm()
-
-    register = RegisterForm()

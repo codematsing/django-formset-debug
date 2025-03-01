@@ -18,14 +18,14 @@ def test_render_hours(hour12):
 
     controls = soup.find(class_='controls')
     prev_button = next(controls.children)
-    assert prev_button.attrs['data-date'] == '2023-01-17'
+    assert prev_button.attrs['data-date'] == '2023-01-17T00:00'
     assert 'prev' in prev_button.attrs['class']
     extend_button = prev_button.next_sibling
     assert extend_button.attrs['data-date'] == start_datetime.isoformat()
     today_button = extend_button.next_sibling
     assert today_button
     next_button = today_button.next_sibling
-    assert next_button.attrs['data-date'] == '2023-01-19'
+    assert next_button.attrs['data-date'] == '2023-01-19T00:00'
     assert 'next' in next_button.attrs['class']
 
     sheet_body = soup.find(class_='sheet-body')
@@ -54,22 +54,22 @@ def test_render_weeks():
 
     controls = soup.find(class_='controls')
     prev_button = next(controls.children)
-    assert prev_button.attrs['data-date'] == '2022-12-18'
+    assert prev_button.attrs['data-date'] == '2022-12-18T00:00'
     extend_button = prev_button.next_sibling
-    assert extend_button.attrs['data-date'] == start_datetime.isoformat()
+    assert extend_button.attrs['data-date'] == start_datetime.isoformat()[:16]
     today_button = extend_button.next_sibling
     assert today_button
     next_button = today_button.next_sibling
-    assert next_button.attrs['data-date'] == '2023-02-18'
+    assert next_button.attrs['data-date'] == '2023-02-18T00:00'
 
     sheet_body = soup.find(class_='sheet-body')
     weekdays = sheet_body.find('ul', class_='weekdays')
     assert str(weekdays.contents[0]) == '<li><abbr title="Monday">Mon</abbr></li>'
     assert str(weekdays.contents[6]) == '<li><abbr title="Sunday">Sun</abbr></li>'
     monthdays = sheet_body.find(class_='monthdays')
-    assert str(monthdays.contents[0]) == '<li class="adjacent" data-date="2022-12-26">26</li>'
-    assert str(monthdays.contents[24]) == '<li data-date="2023-01-19">19</li>'
-    assert str(monthdays.contents[41]) == '<li class="adjacent" data-date="2023-02-05">5</li>'
+    assert str(monthdays.contents[0]) == '<li class="adjacent" data-date="2022-12-26T00:00">26</li>'
+    assert str(monthdays.contents[24]) == '<li data-date="2023-01-19T00:00">19</li>'
+    assert str(monthdays.contents[41]) == '<li class="adjacent" data-date="2023-02-05T00:00">5</li>'
     assert len(monthdays.contents) == 42
 
 
@@ -80,7 +80,7 @@ def test_render_months():
 
     controls = soup.find(class_='controls')
     prev_button = next(controls.children)
-    assert prev_button.attrs['data-date'] == '2022-01-18'
+    assert prev_button.attrs['data-date'] == '2022-01-18T00:00'
     back_button = prev_button.next_sibling
     assert back_button.attrs['data-date'] == '2023-01-18T00:00:00'
     extend_button = back_button.next_sibling
@@ -88,12 +88,12 @@ def test_render_months():
     today_button = extend_button.next_sibling
     assert today_button
     next_button = today_button.next_sibling
-    assert next_button.attrs['data-date'] == '2024-01-18'
+    assert next_button.attrs['data-date'] == '2024-01-18T00:00'
 
     sheet_body = soup.find(class_='sheet-body')
     months = sheet_body.find('ul', class_='months')
-    assert str(months.contents[0]) == '<li data-date="2023-01-01">January</li>'
-    assert str(months.contents[11]) == '<li data-date="2023-12-01">December</li>'
+    assert str(months.contents[0]) == '<li data-date="2023-01-01T00:00">January</li>'
+    assert str(months.contents[11]) == '<li data-date="2023-12-01T00:00">December</li>'
     assert len(months.contents) == 12
 
 
@@ -104,7 +104,7 @@ def test_render_years():
 
     controls = soup.find(class_='controls')
     prev_button = next(controls.children)
-    assert prev_button.attrs['data-date'] == '2000-01-18'
+    assert prev_button.attrs['data-date'] == '2000-01-18T00:00'
     back_button = prev_button.next_sibling
     assert back_button.attrs['data-date'] == '2023-01-18T00:00:00'
     current = back_button.next_sibling
@@ -112,11 +112,11 @@ def test_render_years():
     today_button = current.next_sibling
     assert today_button
     next_button = today_button.next_sibling
-    assert next_button.attrs['data-date'] == '2040-01-18'
+    assert next_button.attrs['data-date'] == '2040-01-18T00:00'
 
     sheet_body = soup.find(class_='sheet-body')
     years = sheet_body.find('ul', class_='years')
-    assert str(years.contents[0]) == '<li data-date="2020-01-01">2020</li>'
-    assert str(years.contents[3]) == '<li data-date="2023-01-01">2023</li>'
-    assert str(years.contents[19]) == '<li data-date="2039-01-01">2039</li>'
+    assert str(years.contents[0]) == '<li data-date="2020-01-01T00:00">2020</li>'
+    assert str(years.contents[3]) == '<li data-date="2023-01-01T00:00">2023</li>'
+    assert str(years.contents[19]) == '<li data-date="2039-01-01T00:00">2039</li>'
     assert len(years.contents) == 20

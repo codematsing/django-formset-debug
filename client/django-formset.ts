@@ -4,8 +4,8 @@ import {StyleHelpers} from './django-formset/helpers';
 
 
 window.addEventListener('DOMContentLoaded', (event) => {
-	const pseudoStylesElement = StyleHelpers.convertPseudoClasses();
 	const promises = Array<Promise<void>>();
+	StyleHelpers.attachPseudoStyles();
 
 	function defineComponent(resolve: Function, selector: string, newComponent: CustomElementConstructor, options: ElementDefinitionOptions|undefined=undefined) {
 		window.customElements.whenDefined(selector).then(() => resolve());
@@ -163,6 +163,20 @@ window.addEventListener('DOMContentLoaded', (event) => {
 				}).catch(err => reject(err));
 			}));
 		}
+		if (fragmentRoot.querySelector('dialog[is="django-form-dialog"]')) {
+			promises.push(new Promise((resolve, reject) => {
+				import('./django-formset/FormDialog').then(({FormDialogElement}) => {
+					defineComponent(resolve, 'django-form-dialog', FormDialogElement, {extends: 'dialog'});
+				}).catch(err => reject(err));
+			}));
+		}
+		if (fragmentRoot.querySelector('django-stepper-collection')) {
+			promises.push(new Promise((resolve, reject) => {
+				import('./django-formset/StepperCollection').then(({StepperCollectionElement}) => {
+					defineComponent(resolve, 'django-stepper-collection', StepperCollectionElement);
+				}).catch(err => reject(err));
+			}));
+		}
 	}
 
 	document.querySelectorAll('template.empty-collection').forEach(element => {
@@ -183,7 +197,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 	Promise.all(promises).then(() => {
 		window.customElements.define('django-formset', DjangoFormsetElement);
 		window.customElements.whenDefined('django-formset').then(() => {
-			pseudoStylesElement.remove();
+			StyleHelpers.detachPseudoStyles();
 		});
 	}).catch(error => console.error(`Failed to initialize django-formset: ${error}`));
 });

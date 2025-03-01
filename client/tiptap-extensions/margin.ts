@@ -34,7 +34,7 @@ export const TextMargin = Extension.create<TextMarginOptions>({
 					parseHTML: element => Number(element.getAttribute('data-text-indent')) ?? null,
 					renderHTML: attributes => {
 						if (!attributes.textMargin)
-							return {}
+							return {};
 						return {
 							'data-text-indent': attributes.textMargin,
 						}

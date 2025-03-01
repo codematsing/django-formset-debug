@@ -1,5 +1,5 @@
 django-sortable-select {
-	background-color: transparent !important;
+	--dummy-style: none;  // required by DualSelector.transferStyles()
 
 	&.focus {
 		opacity: 1;

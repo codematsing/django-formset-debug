@@ -2,7 +2,6 @@ import pytest
 from time import sleep
 from playwright.sync_api import expect
 
-from django.conf import settings
 from django.core.management import call_command
 from django.forms import Form, fields, models
 from django.urls import path
@@ -34,7 +33,7 @@ class ModelFormView(ContextMixin, IncompleteSelectResponseMixin, FormViewMixin, 
 
 
 @pytest.fixture(scope='function')
-def django_db_setup(django_db_blocker):
+def django_db_setup(django_db_blocker, settings):
     with django_db_blocker.unblock():
         call_command('loaddata', settings.BASE_DIR / 'testapp/fixtures/counties.json', verbosity=0)
         for county in CountyUnnormalized.objects.all():

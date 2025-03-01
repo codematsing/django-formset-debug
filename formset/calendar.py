@@ -72,8 +72,8 @@ class CalendarRenderer:
         hour_localized = '12am' if hour12 else '24h'
         context['shifts'].append([(next_day.replace(hour=0, minute=0).isoformat()[:16], hour_localized, None)])
         context.update(
-            prev_day=(start_datetime - timedelta(days=1)).isoformat()[:10],
-            next_day=(start_datetime + timedelta(days=1)).isoformat()[:10],
+            prev_day=(start_datetime - timedelta(days=1)).isoformat()[:16],
+            next_day=(start_datetime + timedelta(days=1)).isoformat()[:16],
         )
         return context
 
@@ -87,18 +87,18 @@ class CalendarRenderer:
         safe_day = min(start_datetime.day, 28)  # prevent date arithmetic errors on adjacent months
         if start_datetime.month == 1:
             context.update(
-                prev_month=start_datetime.replace(day=safe_day, month=12, year=start_datetime.year - 1).isoformat()[:10],
-                next_month=start_datetime.replace(day=safe_day, month=start_datetime.month + 1).isoformat()[:10],
+                prev_month=start_datetime.replace(day=safe_day, month=12, year=start_datetime.year - 1).isoformat()[:16],
+                next_month=start_datetime.replace(day=safe_day, month=start_datetime.month + 1).isoformat()[:16],
             )
         elif start_datetime.month == 12:
             context.update(
-                prev_month=start_datetime.replace(day=safe_day, month=start_datetime.month - 1).isoformat()[:10],
-                next_month=start_datetime.replace(day=safe_day, month=1, year=start_datetime.year + 1).isoformat()[:10],
+                prev_month=start_datetime.replace(day=safe_day, month=start_datetime.month - 1).isoformat()[:16],
+                next_month=start_datetime.replace(day=safe_day, month=1, year=start_datetime.year + 1).isoformat()[:16],
             )
         else:
             context.update(
-                prev_month=start_datetime.replace(day=safe_day, month=start_datetime.month - 1).isoformat()[:10],
-                next_month=start_datetime.replace(day=safe_day, month=start_datetime.month + 1).isoformat()[:10],
+                prev_month=start_datetime.replace(day=safe_day, month=start_datetime.month - 1).isoformat()[:16],
+                next_month=start_datetime.replace(day=safe_day, month=start_datetime.month + 1).isoformat()[:16],
             )
         monthdays = []
         for day in cal.itermonthdays3(start_datetime.year, start_datetime.month):
@@ -107,7 +107,8 @@ class CalendarRenderer:
             css_classes = []
             if monthday.month != start_datetime.month:
                 css_classes.append('adjacent')
-            context['monthdays'].append((monthday.isoformat()[:10], monthday.day, ' '.join(css_classes)))
+            timestamp = f'{monthday.isoformat()[:10]}T00:00'
+            context['monthdays'].append((timestamp, monthday.day, ' '.join(css_classes)))
         context['weekdays'] = [(date_format(day, 'D'), date_format(day, 'l')) for day in monthdays[:7]]
         return context
 
@@ -117,12 +118,13 @@ class CalendarRenderer:
             'months': [],
         }
         context.update(
-            prev_year=start_datetime.replace(year=start_datetime.year - 1, month=1).isoformat()[:10],
-            next_year=start_datetime.replace(year=start_datetime.year + 1, month=1).isoformat()[:10],
+            prev_year=start_datetime.replace(year=start_datetime.year - 1, month=1).isoformat()[:16],
+            next_year=start_datetime.replace(year=start_datetime.year + 1, month=1).isoformat()[:16],
         )
         for m in range(1, 13):
             month_date = date(start_datetime.year, m, 1)
-            context['months'].append((month_date.isoformat()[:10], date_format(month_date, 'F')))
+            timestamp = f'{month_date.isoformat()[:10]}T00:00'
+            context['months'].append((timestamp, date_format(month_date, 'F')))
         return context
 
     def get_context_years(self):
@@ -132,12 +134,13 @@ class CalendarRenderer:
         }
         start_epoch = int(start_datetime.year / 20) * 20
         context.update(
-            prev_epoch=start_datetime.replace(year=start_epoch - 20, month=1).isoformat()[:10],
-            next_epoch=start_datetime.replace(year=start_epoch + 20, month=1).isoformat()[:10],
+            prev_epoch=start_datetime.replace(year=start_epoch - 20, month=1).isoformat()[:16],
+            next_epoch=start_datetime.replace(year=start_epoch + 20, month=1).isoformat()[:16],
         )
         for y in range(start_epoch, start_epoch + 20):
             year_date = date(y, 1, 1)
-            context['years'].append((year_date.isoformat()[:10], date_format(year_date, 'Y')))
+            timestamp = f'{year_date.isoformat()[:10]}T00:00'
+            context['years'].append((timestamp, date_format(year_date, 'Y')))
         return context
 
     def get_context(self, hour12=False, interval=None):

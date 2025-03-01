@@ -3,7 +3,7 @@
 @import "dualselector";
 @import "colors";
 
-select::placeholder {
+input::placeholder, select::placeholder {
 	color: rgb(128, 128, 128);
 }
 select.ts-hidden-accessible {
@@ -11,6 +11,7 @@ select.ts-hidden-accessible {
 }
 
 django-formset {
+	--django-formset-fg-color: light-dark(black, white);
 	--django-formset-color-invalid: #{$django-formset-color-invalid};
 	--django-formset-shadow-invalid: #{$django-formset-shadow-invalid};
 	--django-formset-color-valid: #{$django-formset-color-valid};
@@ -38,7 +39,7 @@ django-formset {
 			background-image: var(--django-formset-icon-invalid);
 		}
 		@each $field in $feedback-fields {
-			$selector: "#{$field}#{$has-feedback}:invalid:not(:focus)";
+			$selector: "#{$field}#{$has-feedback}:invalid:not([is]):not(:focus)";
 			>#{$selector}, :not([role="group"])>#{$selector} {
 				@include invalid-blurred;
 			}
@@ -54,7 +55,7 @@ django-formset {
 		}
 		[role="group"].dj-dirty:not(.dj-submitted) {
 			@each $field in $feedback-fields {
-				$selector: "#{$field}#{$has-feedback}:invalid:focus";
+				$selector: "#{$field}#{$has-feedback}:invalid:not([is]):focus";
 				>#{$selector}, :not([role="group"])>#{$selector} {
 					@include warning-focused;
 				}
@@ -63,7 +64,7 @@ django-formset {
 		&:not(.dj-feedback-errors) {
 			[role="group"].dj-dirty:not(.dj-submitted) {
 				@each $field in $feedback-fields {
-					$selector: "#{$field}#{$has-feedback}:invalid";
+					$selector: "#{$field}#{$has-feedback}:invalid:not([is])";
 					>#{$selector}, :not([role="group"])>#{$selector} {
 						@include warning-focused;
 					}
@@ -77,7 +78,7 @@ django-formset {
 			border-color: var(--django-formset-color-valid);
 		}
 		@each $field in $feedback-fields {
-			$selector: "#{$field}#{$has-feedback}:valid:not(:focus)";
+			$selector: "#{$field}#{$has-feedback}:valid:not([is]):not(:focus)";
 			>#{$selector}, :not([role="group"])>#{$selector} {
 				@include valid-blurred;
 			}
@@ -97,6 +98,22 @@ django-formset {
 		}
 	}
 
+	@mixin concealed {
+		// HTML fields replaced by counterpart: 'django-selectize', 'django-dual-selector' or 'django-richtext'
+		// and hence marked as concealed.
+		// Styling with 'display: none;' or 'visible: hidden;' would lead to console error
+		// "An invalid form control with name='…' is not focusable" while processing the 'invalid' event handler.
+		display: block !important;
+		height: 1px !important;
+		min-height: initial !important;
+		max-height: initial !important;
+		padding: 0 !important;
+		margin: -1px 0 0 0 !important;
+		border-width: unset !important;
+		opacity: 0 !important;
+		resize: none;
+	}
+
 	[role="group"] {
 		&[hidden] {
 			display: none;
@@ -114,7 +131,7 @@ django-formset {
 				background-image: var(--django-formset-icon-invalid);
 			}
 			@each $field in $feedback-fields {
-				> #{$field}#{$has-feedback}:invalid {
+				> #{$field}#{$has-feedback}:not([is]):invalid {
 					@include invalid-submitted;
 					&:focus {
 						box-shadow: 0 0 0 0.2rem var(--django-formset-shadow-invalid);
@@ -153,19 +170,7 @@ django-formset {
 			background-image: none !important;
 
 			&.dj-concealed {
-				// HTML fields replaced by counterpart: 'django-selectize', 'django-dual-selector' or 'django-richtext'
-				// and hence marked as concealed.
-				// Styling with 'display: none;' or 'visible: hidden;' would lead to console error
-				// "An invalid form control with name='…' is not focusable" while processing the 'invalid' event handler.
-				display: block !important;
-				height: 1px !important;
-				min-height: initial !important;
-				max-height: initial !important;
-				padding: 0 !important;
-				margin: -1px 0 0 0 !important;
-				border: none !important;
-				opacity: 0 !important;
-				resize: none;
+				@include concealed;
 			}
 		}
 

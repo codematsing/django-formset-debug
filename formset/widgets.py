@@ -12,8 +12,9 @@ from django.core.files.uploadedfile import UploadedFile
 from django.core.signing import get_cookie_signer
 from django.db.models.query_utils import Q
 from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
-from django.forms.widgets import (FILE_INPUT_CONTRADICTION, DateTimeBaseInput, FileInput, Select, SelectMultiple,
-                                  TextInput, Widget)
+from django.forms.widgets import (
+    FILE_INPUT_CONTRADICTION, DateTimeBaseInput, FileInput, Select, SelectMultiple, TextInput, Widget,
+)
 from django.template.loader import get_template
 from django.utils.encoding import uri_to_iri
 from django.utils.functional import cached_property
@@ -489,7 +490,7 @@ class DateTextbox(DateTimeBaseInput):
 
 
 class DateCalendar(CalendarRendererMixin, DateTimeBaseInput):
-    template_name = 'formset/default/widgets/datetime.html'
+    template_name = 'formset/default/widgets/calendar.html'
     interval = timedelta(days=1)
 
     def __init__(self, attrs=None, calendar_renderer=None):
@@ -551,7 +552,7 @@ class DateTimeTextbox(DateTimeBaseInput):
 
 
 class DateTimeCalendar(CalendarRendererMixin, DateTimeBaseInput):
-    template_name = 'formset/default/widgets/datetime.html'
+    template_name = 'formset/default/widgets/calendar.html'
     interval = timedelta(hours=1)
 
     def __init__(self, attrs=None, calendar_renderer=None):

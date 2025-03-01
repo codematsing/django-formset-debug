@@ -15,49 +15,106 @@ initial_html = """
 """
 
 initial_json = {
-  "ad_text": {
-    "type": "doc",
-    "content": [
-      {
-        "type": "paragraph",
+    "ad_text": {
+        "type": "doc",
         "content": [
-          {
-            "type": "text",
-            "text": "Morbi odio eros, volutpat ut pharetra vitae, lobortis sed nibh. Prima luce, cum quibus mons aliud consensu ab eo. Unam incolunt Belgae, aliam "
-          },
-          {
-            "type": "text",
-            "marks": [
-              {
-                "type": "custom_hyperlink",
-                "attrs": {
-                  "href": "http://example.org"
-                }
-              }
-            ],
-            "text": "Aquitani"
-          },
-          {
-            "type": "text",
-            "text": ", tertiam. "
-          },
-          {
-            "type": "text",
-            "marks": [
-              {
-                "type": "bold"
-              }
-            ],
-            "text": "Contra legem facit qui id facit quod lex prohibet."
-          },
-          {
-            "type": "text",
-            "text": " Petierunt uti sibi concilium totius Galliae in diem certam indicere."
-          }
+            {
+                "type": "paragraph",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Morbi odio eros, volutpat ut pharetra vitae, lobortis sed nibh. Prima luce, cum quibus mons aliud consensu ab eo. Unam incolunt Belgae, aliam "
+                    },
+                    {
+                        "type": "text",
+                        "marks": [
+                            {
+                                "type": "custom_hyperlink",
+                                "attrs": {
+                                    "href": "http://example.org",
+                                }
+                            }
+                        ],
+                        "text": "Aquitani"
+                    },
+                    {
+                        "type": "text",
+                        "text": ", tertiam."
+                    },
+                    {
+                        "type": "footnote",
+                        "attrs": {
+                            "content": {
+                                "type": "doc",
+                                "content": [
+                                    {
+                                        "type": "paragraph",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "marks": [
+                                                    {
+                                                        "type": "italic"
+                                                    }
+                                                ],
+                                                "text": "Belgae "
+                                            },
+                                            {
+                                                "type": "text",
+                                                "marks": [
+                                                    {
+                                                        "type": "simple_link",
+                                                        "attrs": {
+                                                            "href": "http://example.org"
+                                                        }
+                                                    },
+                                                    {
+                                                        "type": "italic"
+                                                    }
+                                                ],
+                                                "text": "Aquitani"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "marks": [
+                                                    {
+                                                        "type": "italic"
+                                                    }
+                                                ],
+                                                "text": ", tertiam."
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "paragraph"
+                                    }
+                                ]
+                            },
+                            "role": "note"
+                        }
+                    }
+                ]
+            },
+            {
+                "type": "paragraph",
+                "content": [
+                    {
+                        "type": "text",
+                        "marks": [
+                            {
+                                "type": "bold"
+                            }
+                        ],
+                        "text": "Contra legem facit qui id facit quod lex prohibet."
+                    },
+                    {
+                        "type": "text",
+                        "text": " Petierunt uti sibi concilium totius Galliae in diem certam indicere."
+                    }
+                ]
+            }
         ]
-      }
-    ]
-  }
+    }
 }
 
 
@@ -108,17 +165,46 @@ class CustomHyperlinkDialogForm(dialogs.RichtextDialogForm):
     )
 
 
-font_classes = {
-    'open-sans-regular': 'Open Sans',
-    'dancing-script-regular': 'Dancing Script',
-    'lato-regular': 'Lato',
-    'merriweather-regular': 'Merriweather',
-    'montserrat-regular': 'Montserrat',
-    'roboto-regular': 'Roboto',
-    'pacifio-regular': 'Pacifico',
-    'incosolata-regular': 'Incosolata',
-    'playfair-display-regular': 'Playfair Display',
+font_family_classes = {
+    'open-sans-regular': "Open Sans",
+    'dancing-script-regular': "Dancing Script",
+    'lato-regular': "Lato",
+    'merriweather-regular': "Merriweather",
+    'montserrat-regular': "Montserrat",
+    'roboto-regular': "Roboto",
+    'pacifio-regular': "Pacifico",
+    'incosolata-regular': "Incosolata",
+    'playfair-display-regular': "Playfair Display",
 }
+
+
+font_size_classes = {
+    'font-size-small': "Small",
+    'font-size-smaller': "Smaller",
+    'font-size-large': "Large",
+    'font-size-larger': "Larger",
+}
+
+
+line_height_classes = {
+    'line-height-small': "Small",
+    'line-height-medium': "Medium",
+    'line-height-double': "Double",
+}
+
+
+margin_bottom_classes = {
+    'margin-bottom-1': "Small",
+    'margin-bottom-2': "Medium",
+    'margin-bottom-3': "Double",
+}
+
+
+class MarginBottom(controls.ClassBaseControlElement):
+    extension = 'marginBottom'
+    label = "Margin Bottom"
+    icon = 'testapp/margin-bottom.svg'
+    extension_type = 'node'
 
 
 class AdvertisementForm(forms.Form):
@@ -136,7 +222,11 @@ class AdvertisementForm(forms.Form):
             controls.Group([
                 controls.TextColor(['text-red', 'text-green', 'text-blue']),
                 #controls.TextColor(['rgb(212, 0, 0)', 'rgb(0, 212, 0)', 'rgb(0, 0, 212)']),
-                controls.FontFamily(font_classes),
+                controls.FontFamily(font_family_classes),
+                controls.FontSize(font_size_classes),
+                controls.LineHeight(line_height_classes),
+                MarginBottom(margin_bottom_classes),
+                controls.Separator(),
                 controls.TextIndent(),
                 controls.TextIndent('outdent'),
                 controls.TextMargin('increase'),

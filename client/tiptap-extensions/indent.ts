@@ -31,7 +31,7 @@ export const TextIndent = Extension.create<TextIndentOptions>({
 					parseHTML: element => element.getAttribute('data-text'),
 					renderHTML: attributes => {
 						if (!attributes.textIndent)
-							return {}
+							return {};
 						return {
 							'data-text': attributes.textIndent,
 						}

@@ -42,7 +42,7 @@ explain their functionality:
   submitted along with the form's payload and will be available to our ``FormView`` instance, which
   is connected to the given endpoint. From inside that ``FormView`` instance the submitted extra
   data can then be accessed by calling ``self.get_extra_data()``. 
-* If the submission was successful, ``proceed`` tells the client what to do next. If called without
+* If the submission was successful, ``proceed`` tells the browser what to do next. If called without
   arguments, the default is to load the page given by the ``success_url`` provided by our Django
   view handling the request. If instead we use ``proceed("/path/to/success/page")``, that page is
   loaded on successful form submission. This allows web designers to specify that URL like a link,
@@ -109,7 +109,8 @@ as queued actions for buttons in **django-formset**:
 * ``intercept`` intercepts the response object after submission and prints it onto the browser
   console. This is only useful for debugging purposes.
 * ``intercept("<dom-selector>")`` prints the intercepted submission to a HTML element as specified
-  by the ``<dom-selector>``. This documentation makes heavy use of that feature.
+  by the ``<dom-selector>``. The documentation you're currently interacting with, makes heavy use of
+  this feature.
 
 By combining these button actions, we gain a huge set of possibilities to greatly improve the user
 experience. If for instance, form processing takes more than say one second, we shall somehow
