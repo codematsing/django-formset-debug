@@ -46,6 +46,7 @@ from testapp.forms.cafeteria import CafeteriaCollection, CoffeeOrderCollection
 from testapp.forms.checkout import CheckoutCollection
 from testapp.forms.country import CountryForm
 from testapp.forms.county import CountyForm
+from testapp.forms.multiwidget import MultiWidgetForm
 from testapp.forms.customer import CustomerForm
 from testapp.forms.gallerycollection import GalleryCollection
 from testapp.forms.issue import EditIssueCollection
@@ -700,4 +701,7 @@ urlpatterns = [
     ), name='button-actions'),
     path('gallerycollection', GalleryCollectionView.as_view(
     ), name='gallerycollection'),
+    path('multiwidget', DemoFormView.as_view(
+        form_class=MultiWidgetForm,
+    ), name='multiwidget'),
 ]
