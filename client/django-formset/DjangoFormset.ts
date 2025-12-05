@@ -50,6 +50,7 @@ class FieldGroup {
 	public readonly form: DjangoForm;
 	public readonly name: string;
 	public readonly element: HTMLElement;
+	public readonly isInitialized: Promise<boolean>;
 	private readonly pristineValue: BoundValue;
 	private readonly fieldElements: Array<FieldElement>;
 	private readonly initialDisabled: Array<boolean>;
@@ -64,6 +65,8 @@ class FieldGroup {
 	constructor(form: DjangoForm, element: HTMLElement) {
 		this.form = form;
 		this.element = element;
+		let resolveInitialized: Function;
+		this.isInitialized = new Promise(r => resolveInitialized = r);
 		this.errorPlaceholder = element.querySelector('.dj-errorlist > .dj-placeholder');
 		this.errorMessages = new FieldErrorMessages(element);
 		const requiredAny = element.classList.contains('dj-required-any');
@@ -121,6 +124,12 @@ class FieldGroup {
 			textAreaElement.addEventListener('blur', () => this.validate());
 			textAreaElement.addEventListener('invalid', () => this.showErrorMessage(textAreaElement));
 			this.fieldElements.push(textAreaElement);
+		}
+		if (textAreaElement && 'isInitialized' in textAreaElement) {
+			// currently only the `<textarea is="django-richtext">` is initialized asynchronously
+			textAreaElement.addEventListener('initialized', () => resolveInitialized(textAreaElement.isInitialized));
+		} else {
+			resolveInitialized(true);
 		}
 
 		this.name = this.assertUniqueName();
@@ -394,7 +403,7 @@ class FieldGroup {
 				// input fields converted to web components may additionally validate themselves
 				element.checkValidity();
 			}
-			if (!element.validity.valid)
+			if (!element?.validity.valid)
 				break;
 		}
 		if (element && !element.validity.valid) {
@@ -1436,6 +1445,10 @@ class DjangoForm {
 	public restoreRequiredConstraints() {
 		this.fieldGroups.forEach(fieldGroup => fieldGroup.restoreRequiredConstraint());
 	}
+
+	get isInitialized() : Promise<boolean[]> {
+		return Promise.all(this.fieldGroups.map(group => group.isInitialized));
+	}
 }
 
 
@@ -1477,6 +1490,10 @@ class DjangoFormCollection {
 	}
 
 	public updateRemoveButtonAttrs() {}
+
+	get isInitialized() : Promise<Awaited<boolean[]>[]> {
+		return Promise.all(this.forms.map(form => form.isInitialized));
+	}
 
 	protected disconnect() {
 		this.forms.forEach(form => this.formset.removeForm(form));
@@ -1853,7 +1870,7 @@ export class DjangoFormset {
 		this.assignFormsToCollections();
 		this.findDetachedButtons();
 		this.formCollections.forEach(collection => collection.markAsFreshAndEmpty());
-		window.setTimeout(() => this.validate(), 0);
+		Promise.all(this.formCollections.map(collection => collection.isInitialized)).then(() => this.validate());
 	}
 
 	get endpoint(): string {
@@ -2134,7 +2151,7 @@ export class DjangoFormset {
 					headers: headers,
 					body: JSON.stringify(body),
 					signal: this.abortController.signal,
-				});
+				} as RequestInit);
 				switch (response.status) {
 					case 200:
 						this.clearErrors();

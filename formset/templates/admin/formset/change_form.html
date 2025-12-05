@@ -3,7 +3,8 @@
 
 {% block extrahead %}
 	{{ block.super }}
-	<script type="module" src="{% static 'formset/django-formset.js' %}"></script>
+	<script type="module"
+            src="{% if use_monolithic_build %}{% static 'formset/js/django-formset.monolith.js' %}{% else %}{% static 'formset/js/django-formset.js' %}{% endif %}"></script>
 {% endblock %}
 
 {% block content %}
