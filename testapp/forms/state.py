@@ -12,33 +12,36 @@ class StateForm(forms.Form):
 
     state = models.ModelChoiceField(
         label="State",
-        queryset=State.objects.all(),
+        queryset=State.objects.filter(pk__lte=2),
         widget=Selectize(
             search_lookup='name__icontains',
         ),
-        initial=2,
+        # initial=2,
     )
-    county = models.ModelChoiceField(
-        label="County",
-        queryset=County.objects.all(),
+    county_selectize = models.ModelChoiceField(
+        label="County Selectize",
+        queryset=County.objects.filter(state__pk__lte=2),
         widget=Selectize(
             search_lookup=['name__icontains'],
             filter_by={'state': 'state__id'},
         ),
-        initial=70,
+        # initial=70,
     )
-    counties = models.ModelMultipleChoiceField(
-        label="Counties",
-        queryset=County.objects.all(),
-        # widget=DualSelector(
-        #     search_lookup=['name__icontains'],
-        #     filter_by={'state': 'state__id'},
-        # ),
+    counties_selectize = models.ModelMultipleChoiceField(
+        label="Counties Selectize",
+        queryset=County.objects.filter(state__pk__lte=2),
         widget=SelectizeMultiple(
             search_lookup=['name__icontains'],
             filter_by={'state': 'state__id'},
         ),
-        initial=[3, 70, 2940],
+    )
+    counties_dualselector = models.ModelMultipleChoiceField(
+        label="Counties Dual Selector",
+        queryset=County.objects.filter(state__pk__lte=2),
+        widget=DualSelector(
+            search_lookup=['name__icontains'],
+            filter_by={'state': 'state__id'},
+        ),
     )
 
 
