@@ -1,13 +1,17 @@
 from django.forms import forms, models
 from django_filters import FilterSet, ModelChoiceFilter
-from formset.widgets import DualSelector, Selectize, SelectizeMultiple
 
+from formset.widgets import DualSelector, Selectize, SelectizeMultiple
 from testapp.models import County, State
 
 
 class CountyChoiceField(models.ModelChoiceField):
     def label_from_instance(self, obj):
-        return {'label': obj.name, 'sublabel': obj.state.name, 'itemlabel': f"{obj.name} ({obj.state.code})"}
+        return {
+            "label": obj.name,
+            "sublabel": obj.state.name,
+            "itemlabel": f"{obj.name} ({obj.state.code})",
+        }
 
 
 class StateForm(forms.Form):
@@ -19,32 +23,39 @@ class StateForm(forms.Form):
         label="State",
         queryset=State.objects.all(),
         widget=Selectize(
-            search_lookup='name__icontains',
+            search_lookup="name__icontains",
         ),
         initial=23,
     )
     county = CountyChoiceField(
         label="County",
-        queryset=County.objects.select_related('state'),
+        queryset=County.objects.select_related("state"),
         widget=Selectize(
-            search_lookup=['name__icontains'],
-            filter_by={'state': 'state_id'},
+            search_lookup=["name__icontains"],
+            filter_by={"state": "state_id"},
         ),
         initial=1293,
     )
     counties = models.ModelMultipleChoiceField(
         label="Counties",
-        queryset=County.objects.select_related('state'),
+        queryset=County.objects.select_related("state"),
         # widget=DualSelector(
         #     search_lookup=['name__icontains'],
         #     filter_by={'state': 'state__id'},
         # ),
         widget=SelectizeMultiple(
-            search_lookup=['name__icontains'],
-            filter_by={'state': 'state_id'},
+            search_lookup=["name__icontains"],
+            filter_by={"state": "state_id"},
         ),
         initial=[1247, 1288],
     )
+
+
+class CustomDualSelector(DualSelector):
+    max_prefetch_choices = (
+        10  # for purpose of demonstration, I exaggerated the amount of prefetch choices
+    )
+    max_items = 10
 
 
 class StatesForm(forms.Form):
@@ -56,7 +67,7 @@ class StatesForm(forms.Form):
         label="States",
         queryset=State.objects.all(),
         widget=SelectizeMultiple(
-            search_lookup='name__icontains',
+            search_lookup="name__icontains",
         ),
         required=False,
         initial=[2, 47],
@@ -69,11 +80,23 @@ class StatesForm(forms.Form):
         #     search_lookup=['name__icontains'],
         #     filter_by={'states': 'state__id'},
         # ),
-        widget=DualSelector(
-            search_lookup=['name__icontains'],
-            filter_by={'states': 'state__id'},
+        widget=CustomDualSelector(
+            search_lookup=["name__icontains"],
+            filter_by={"states": "state__id"},
         ),
-        # initial=[3, 70, 2940],
+        initial=[
+            2822,
+            2823,
+            2824,
+            68,
+            69,
+            70,
+            71,
+            72,
+            2825,
+            2826,
+            2827,
+        ],
     )
 
 
@@ -85,7 +108,7 @@ class StateFilterSet(FilterSet):
     @property
     def qs(self):
         parent_qs = super().qs
-        if state := self.request.GET.get('filter-state'):
+        if state := self.request.GET.get("filter-state"):
             return parent_qs.filter(state=state)
         return parent_qs
 
@@ -99,7 +122,7 @@ class StateFilteredForm(forms.Form):
         label="State",
         queryset=State.objects.all(),
         widget=Selectize(
-            search_lookup='name__icontains',
+            search_lookup="name__icontains",
         ),
         initial=2,
     )
@@ -107,7 +130,7 @@ class StateFilteredForm(forms.Form):
         label="County",
         queryset=County.objects.all(),
         widget=Selectize(
-            search_lookup=['name__icontains'],
+            search_lookup=["name__icontains"],
             use_filter_set=StateFilterSet,
         ),
         initial=70,
